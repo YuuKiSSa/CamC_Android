@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "881582868647",
+    "project_id": "ad-project-fc4a9",
+    "storage_bucket": "ad-project-fc4a9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:881582868647:android:afe0175ebe4c22ca023382",
+        "android_client_info": {
+          "package_name": "iss.workshop.adproject"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBpPFurlJjBS4X5eHlB0H2AtHX4BaE8L7I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
