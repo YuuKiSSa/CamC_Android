@@ -12,10 +12,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -119,7 +121,7 @@ public class CameraDetailActivity extends AppCompatActivity {
 
                 String resp = response.body().string();
                 Gson gson = new GsonBuilder()
-                        .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                        .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())
                         .create();
 
                 CameraDetailDTO cameraDetail = gson.fromJson(resp, CameraDetailDTO.class);
@@ -162,19 +164,28 @@ public class CameraDetailActivity extends AppCompatActivity {
                     runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Unexpected code " + response.code() + ": " + errorResponse, Toast.LENGTH_LONG).show());
                     return;
                 }
-
                 String resp = response.body().string();
                 Gson gson = new GsonBuilder()
-                        .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())
+                        .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
                         .create();
+                Type listType = new TypeToken<List<UserReviewDTO>>() {}.getType();
+                List<UserReviewDTO> userReviews = gson.fromJson(resp, listType);
 
-                UserReviewDTO userReviewDTO = gson.fromJson(resp, UserReviewDTO.class);
-                List<ReviewDetailDTO> reviews = userReviewDTO.getReviews();
+                // 展开所有的 reviews 到一个列表中
+                List<ReviewDetailDTO> allReviews = new ArrayList<>();
+                for (UserReviewDTO userReview : userReviews) {
+                    allReviews.addAll(userReview.getReviews());
+                }
 
                 runOnUiThread(() -> {
-                    reviewList.clear();
-                    reviewList.addAll(reviews);
-                    reviewAdapter.notifyDataSetChanged();
+                    if (allReviews.isEmpty()) {
+                        Toast.makeText(CameraDetailActivity.this, "No reviews found.", Toast.LENGTH_LONG).show();
+                    } else {
+                        ReviewAdapter adapter = new ReviewAdapter(allReviews);
+                        RecyclerView recyclerView = findViewById(R.id.reviewRecyclerView);
+                        recyclerView.setAdapter(adapter);
+                        adapter.notifyDataSetChanged();  // 确保数据更新
+                    }
                 });
             }
         });
