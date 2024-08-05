@@ -11,34 +11,164 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <com.google.android.material.appbar.AppBarLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+            android:layout_height="match_parent">
+
+            <FrameLayout
+                android:id="@+id/frame_layout"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/toolbar"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="?attr/actionBarSize"
                 android:background="@color/rblack"
                 android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-                app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+                app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
 
-        </com.google.android.material.appbar.AppBarLayout>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:layout_gravity="center"
+                    android:gravity="center">
 
-        <FrameLayout
-            android:id="@+id/frame_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+                    <TextView
+                        android:id="@+id/nav_home"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Home"
+                        android:textColor="#FFFFFF"
+                        android:padding="16dp"
+                        android:clickable="true"
+                        android:focusable="true" />
+                    <Space
+                        android:layout_width="20dp"
+                        android:layout_height="match_parent" />
+                    <TextView
+                        android:id="@+id/nav_camera"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Camera"
+                        android:textColor="#FFFFFF"
+                        android:padding="16dp"
+                        android:clickable="true"
+                        android:focusable="true" />
+                    <Space
+                        android:layout_width="20dp"
+                        android:layout_height="match_parent" />
+                    <TextView
+                        android:id="@+id/nav_profile"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Profile"
+                        android:textColor="#FFFFFF"
+                        android:padding="16dp"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                </LinearLayout>
+            </androidx.appcompat.widget.Toolbar>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/navigation_view"
-        android:layout_width="wrap_content"
+    <!-- 侧边菜单 -->
+    <LinearLayout
+        android:id="@+id/filter_menu"
+        android:layout_width="300dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        app:menu="@menu/drawer_menu" />
+        android:orientation="vertical"
+        android:background="#73c088"
+        android:padding="16dp">
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Filter"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- 价格区间 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Price Range" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <EditText
+                android:id="@+id/min_price"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Min" />
+            <EditText
+                android:id="@+id/max_price"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Max" />
+        </LinearLayout>
+
+        <!-- 品牌选择 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Brand" />
+        <CheckBox
+            android:id="@+id/brand_canon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Canon" />
+        <CheckBox
+            android:id="@+id/brand_sony"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sony" />
+        <CheckBox
+            android:id="@+id/brand_nikon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nikon" />
+
+        <!-- 相机种类标签 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Typical Features" />
+        <CheckBox
+            android:id="@+id/tag_landscape"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Landscape" />
+        <CheckBox
+            android:id="@+id/tag_portrait"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Portrait" />
+        <CheckBox
+            android:id="@+id/tag_sports"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sports" />
+
+        <Button
+            android:id="@+id/apply_filter_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select" />
+    </LinearLayout>
 </androidx.drawerlayout.widget.DrawerLayout>
