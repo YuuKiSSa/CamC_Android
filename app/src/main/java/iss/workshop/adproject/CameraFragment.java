@@ -1,15 +1,27 @@
 package iss.workshop.adproject;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
-import android.widget.AdapterView;
 
+import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 import com.google.gson.Gson;
@@ -24,11 +36,15 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public class CameraFragment extends Fragment {
-
-    private static final String URL = "http://10.0.2.2:8080/api/list";
+    private EditText searchBar;
+    private static final String TAG = "CameraFragment";
+    CameraListAdapter adapter;
+    private ImageView filterIcon;
+    private DrawerLayout drawerLayout;
+    private static final String URL = "http://10.0.2.2:8080/api/list-tag";
     private OkHttpClient client = new OkHttpClient();
     private ListView listView;
-    private List<CameraListDTO> cameras;
+    private Button searchButton;
 
     @Nullable
     @Override
@@ -36,6 +52,9 @@ public class CameraFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_camera, container, false);
         listView = view.findViewById(R.id.listView);
         sendGet();
+        filterIcon = view.findViewById(R.id.filter_icon);
+        searchBar = view.findViewById(R.id.search_bar);
+        searchButton = view.findViewById(R.id.search_button);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -51,6 +70,64 @@ public class CameraFragment extends Fragment {
             }
         });
 
+        searchBar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchBar.requestFocus();
+                // 延迟显示下拉框
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        // 触发搜索
+                        String query = searchBar.getText().toString();
+                        adapter.getFilter().filter(query);
+                    }
+                }, 200); // 延迟200毫秒，确保键盘已经弹出
+            }
+        });
+
+        searchBar.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    // 延迟显示下拉框
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            // 触发搜索
+                            String query = searchBar.getText().toString();
+                            adapter.getFilter().filter(query);
+                        }
+                    }, 200); // 延迟200毫秒，确保键盘已经弹出
+                } else {
+                    // 隐藏键盘
+                    InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                }
+            }
+        });
+
+        searchButton.setOnClickListener(v -> {
+            // 获取搜索栏的文本
+            String query = searchBar.getText().toString();
+            // 设置搜索查询
+            adapter.setSearchQuery(query);
+            // 过滤列表
+            adapter.getFilter().filter("");
+
+            // 隐藏键盘
+            InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            searchBar.clearFocus(); // 清除焦点
+        });
+
+
+        filterIcon.setOnClickListener(v -> {
+            // 通过 MainActivity 打开筛选菜单
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).openDrawer();
+            }
+        });
         return view;
     }
 
@@ -77,27 +154,30 @@ public class CameraFragment extends Fragment {
                 }
 
                 String resp = response.body().string();
+                Log.d(TAG, "Response JSON: " + resp); // 打印服务器返回的 JSON 数据
 
                 try {
                     // 解析JSON对象
-                    JsonObject jsonObject = JsonParser.parseString(resp).getAsJsonObject();
-                    // 提取cameras数组
-                    String camerasJson = jsonObject.getAsJsonArray("cameras").toString();
-
                     Gson gson = new Gson();
                     Type listType = new TypeToken<List<CameraListDTO>>(){}.getType();
-                    List<CameraListDTO> cameras = gson.fromJson(camerasJson, listType);
+                    List<CameraListDTO> cameras = gson.fromJson(resp, listType);
 
                     getActivity().runOnUiThread(() -> {
-                        CameraListAdapter adapter = new CameraListAdapter(getActivity(), cameras);
+                        adapter = new CameraListAdapter(getActivity(), cameras);
                         listView.setAdapter(adapter);
-
                     });
                 } catch (Exception e) {
+                    Log.e(TAG, "JSON Parsing Error", e);
                     getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "JSON Parsing Error: " + e.getMessage(), Toast.LENGTH_LONG).show());
                 }
             }
         });
+    }
+    public void applyFilters(String minPriceStr, String maxPriceStr, boolean isCanonChecked, boolean isSonyChecked, boolean isNikonChecked, boolean isLandscapeChecked, boolean isPortraitChecked, boolean isSportsChecked) {
+        if (adapter != null) {
+            adapter.setFilterOptions(minPriceStr, maxPriceStr, isCanonChecked, isSonyChecked, isNikonChecked, isLandscapeChecked, isPortraitChecked, isSportsChecked);
+            adapter.getFilter().filter("");
+        }
     }
 
 }

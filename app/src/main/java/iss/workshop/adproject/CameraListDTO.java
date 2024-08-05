@@ -1,11 +1,15 @@
 package iss.workshop.adproject;
 
+import java.util.List;
+
 public class CameraListDTO {
     private long id;
     private Brand brand;
     private String model;
     private double initialPrice;
+    private double latestPrice;
     private String imageUrl;
+    private List<String> tags;
 
     // Getters and setters
     public long getId() {
@@ -46,5 +50,19 @@ public class CameraListDTO {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+    public List<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<String> tags) {
+        this.tags = tags;
+    }
+    public double getLatestPrice() {
+        return latestPrice;
+    }
+
+    public void setLatestPrice(double latestPrice) {
+        this.latestPrice = latestPrice;
     }
 }
