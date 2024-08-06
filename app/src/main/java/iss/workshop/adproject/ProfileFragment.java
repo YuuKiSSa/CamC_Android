@@ -1,100 +1,123 @@
 package iss.workshop.adproject;
-
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import java.util.ArrayList;
-import java.util.List;
+import androidx.fragment.app.FragmentManager;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.io.IOException;
+
+import iss.workshop.adproject.R;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class ProfileFragment extends Fragment {
 
-    private TextView userNameTextView;
-    private TextView userIdTextView;
-    private RecyclerView settingsRecyclerView;
-
-    private TextView couponsCountTextView;
-    private TextView footprintCountTextView;
-    private TextView historyCountTextView;
-    private TextView likesCountTextView;
-
+    private SharedPreferences sharedPreferences;
     public ProfileFragment() {
         // Required empty public constructor
     }
 
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_profile, container, false);
+        sharedPreferences = getActivity().getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE);
+        boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
 
-        // Initialize views
-        //profileImageView = view.findViewById(R.id.profileImageView);
-        userNameTextView = view.findViewById(R.id.userNameTextView);
-        userIdTextView = view.findViewById(R.id.userIdTextView);
-        settingsRecyclerView = view.findViewById(R.id.settingsRecyclerView);
-
-        couponsCountTextView = view.findViewById(R.id.couponsCountTextView);
-        footprintCountTextView = view.findViewById(R.id.footprintCountTextView);
-        historyCountTextView = view.findViewById(R.id.historyCountTextView);
-        likesCountTextView = view.findViewById(R.id.likesCountTextView);
-
-        // Load user data
-        loadUserData();
-
-        // Setup RecyclerView
-        settingsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        settingsRecyclerView.setAdapter(new SettingsAdapter(getSettingItems(), this::onSettingItemClick));
-
-
-        return view;
-    }
-
-    private void loadUserData() {
-        // 假设这里加载用户数据，后面可以从 ViewModel 或者网络获取
-        userNameTextView.setText("Loopy");
-        userIdTextView.setText("ID:22369874");
-
-        couponsCountTextView.setText("5");
-        footprintCountTextView.setText("268");
-        historyCountTextView.setText("78");
-        likesCountTextView.setText("136");
-    }
-
-    private List<SettingItem> getSettingItems() {
-        List<SettingItem> items = new ArrayList<>();
-        items.add(new SettingItem("Problem Feedback"));
-        items.add(new SettingItem("Help Center"));
-        items.add(new SettingItem("Settings"));
-        return items;
-    }
-
-    private void onSettingItemClick(SettingItem item) {
-        Toast.makeText(getContext(), item.getTitle() + " clicked", Toast.LENGTH_SHORT).show();
-        // 处理设置项点击事件
-        switch (item.getTitle()) {
-            case "Problem Feedback":
-                // 跳转到问题反馈页面
-                break;
-            case "Help Center":
-                // 跳转到帮助中心页面
-                break;
-            case "Settings":
-                // 跳转到设置页面
-                break;
+        if (isLoggedIn) {
+            return inflater.inflate(R.layout.fragment_profile_logged_in, container, false);
+        } else {
+            return inflater.inflate(R.layout.fragment_profile, container, false);
         }
     }
 
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
+        if (sharedPreferences.getBoolean("isLoggedIn", false)) {
+            TextView tvUsername = view.findViewById(R.id.tv_username);
+            Button btnLogout = view.findViewById(R.id.btn_logout);
 
+            String username = sharedPreferences.getString("username", "Guest");
+            tvUsername.setText(username);
+
+            btnLogout.setOnClickListener(v -> {
+                // 创建 OkHttpClient 实例
+                OkHttpClient client = new OkHttpClient();
+
+                // 创建请求
+                Request request = new Request.Builder()
+                        .url("http://10.0.2.2:8080/api/logout")
+                        .post(RequestBody.create(null, new byte[0])) // 空的 POST 请求体
+                        .build();
+
+                // 发送请求
+                client.newCall(request).enqueue(new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+                        // 请求失败处理
+                        e.printStackTrace();
+                        getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "Logout Failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                    }
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        // 请求成功处理
+                        if (response.isSuccessful()) {
+                            getActivity().runOnUiThread(() -> {
+                                // 本地登出操作
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putBoolean("isLoggedIn", false);
+                                editor.remove("username");
+                                editor.apply();
+
+                                // 更新 UI
+                                FragmentManager fragmentManager = getParentFragmentManager();
+                                clearFragmentContainer(fragmentManager);
+                                fragmentManager.beginTransaction().replace(R.id.fragment_container, new ProfileFragment()).commit();
+
+                                Toast.makeText(getActivity(), "Logged out successfully", Toast.LENGTH_SHORT).show();
+                            });
+                        } else {
+                            getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "Logout Failed: " + response.message(), Toast.LENGTH_LONG).show());
+                        }
+                    }
+                });
+            });
+        } else {
+            Button btnLogin = view.findViewById(R.id.btn_login);
+            Button btnRegister = view.findViewById(R.id.btn_register);
+
+            btnLogin.setOnClickListener(v -> {
+                FragmentManager fragmentManager = getParentFragmentManager();
+                clearFragmentContainer(fragmentManager);
+                fragmentManager.beginTransaction().replace(R.id.fragment_container, new LoginFragment()).addToBackStack(null).commit();
+            });
+            btnRegister.setOnClickListener(v -> {
+                FragmentManager fragmentManager = getParentFragmentManager();
+                clearFragmentContainer(fragmentManager);
+                fragmentManager.beginTransaction().replace(R.id.fragment_container, new RegisterFragment()).addToBackStack(null).commit();
+            });
+        }
+    }
+    private void clearFragmentContainer(FragmentManager fragmentManager) {
+        for (Fragment fragment : fragmentManager.getFragments()) {
+            fragmentManager.beginTransaction().remove(fragment).commit();
+        }
+    }
 }

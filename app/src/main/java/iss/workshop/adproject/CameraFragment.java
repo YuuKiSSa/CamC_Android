@@ -161,14 +161,17 @@ public class CameraFragment extends Fragment {
                     Gson gson = new Gson();
                     Type listType = new TypeToken<List<CameraListDTO>>(){}.getType();
                     List<CameraListDTO> cameras = gson.fromJson(resp, listType);
-
-                    getActivity().runOnUiThread(() -> {
-                        adapter = new CameraListAdapter(getActivity(), cameras);
-                        listView.setAdapter(adapter);
-                    });
+                    if (isAdded()) {
+                        getActivity().runOnUiThread(() -> {
+                            adapter = new CameraListAdapter(getActivity(), cameras);
+                            listView.setAdapter(adapter);
+                        });
+                    }
                 } catch (Exception e) {
                     Log.e(TAG, "JSON Parsing Error", e);
+                    if (isAdded()) {
                     getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "JSON Parsing Error: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                    }
                 }
             }
         });

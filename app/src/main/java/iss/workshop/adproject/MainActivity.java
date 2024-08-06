@@ -16,6 +16,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 
 import java.util.List;
@@ -67,6 +68,8 @@ public class MainActivity extends AppCompatActivity{
     }
 
     private void switchFragment(Fragment fragment) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        clearFragmentContainer(fragmentManager);
         getSupportFragmentManager().beginTransaction().replace(R.id.frame_layout, fragment).commit();
     }
     public void openDrawer() {
@@ -105,6 +108,11 @@ public class MainActivity extends AppCompatActivity{
         if (view != null) {
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }
+    private void clearFragmentContainer(FragmentManager fragmentManager) {
+        for (Fragment fragment : fragmentManager.getFragments()) {
+            fragmentManager.beginTransaction().remove(fragment).commit();
         }
     }
 }

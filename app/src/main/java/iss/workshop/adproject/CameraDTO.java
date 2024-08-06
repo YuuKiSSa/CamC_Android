@@ -122,11 +122,21 @@ public class CameraDTO {
         this.videoRate = videoRate;
     }
 
-    public String getUrl() {
+    public String getImageUrl() {
         return imageUrl;
     }
 
-    public void setUrl(String url) {
+    public void setImageUrl(String url) {
         this.imageUrl = url;
+    }
+    @Override
+    public String toString() {
+        return "CameraDTO{" +
+                "id=" + id +
+                ", brand='" + brand + '\'' +
+                ", model='" + model + '\'' +
+                ", initialPrice=" + initialPrice +
+                ", imageUrl='" + imageUrl + '\'' +
+                '}';
     }
 }
