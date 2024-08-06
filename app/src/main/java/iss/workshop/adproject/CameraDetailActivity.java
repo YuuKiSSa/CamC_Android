@@ -1,6 +1,8 @@
 package iss.workshop.adproject;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -33,7 +35,7 @@ public class CameraDetailActivity extends AppCompatActivity {
 
     private static final String CAMERA_DETAIL_URL = "http://10.0.2.2:8080/api/details/";
     private static final String USER_REVIEWS_URL = "http://10.0.2.2:8080/api/review/";
-
+    private static final String MIN_PRICE_URL = "http://10.0.2.2:8080/api/minPrice/";
     private ImageView cameraImageView;
     private TextView brandTextView;
     private TextView modelTextView;
@@ -50,7 +52,8 @@ public class CameraDetailActivity extends AppCompatActivity {
     private RecyclerView reviewRecyclerView;
     private ReviewAdapter reviewAdapter;
     private List<ReviewDetailDTO> reviewList = new ArrayList<>();
-
+    private TextView minPrice;
+    private String platform;
     private OkHttpClient client = new OkHttpClient();
 
     @Override
@@ -75,6 +78,8 @@ public class CameraDetailActivity extends AppCompatActivity {
         reviewRecyclerView = findViewById(R.id.reviewRecyclerView);
         Button Button1 = findViewById(R.id.Button1);
         Button Button2 = findViewById(R.id.Button2);
+        minPrice = findViewById(R.id.minPrice);
+
         // 配置 RecyclerView
         reviewRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         reviewAdapter = new ReviewAdapter(reviewList);
@@ -85,6 +90,7 @@ public class CameraDetailActivity extends AppCompatActivity {
             startActivity(intent1);
         });
 
+
         // 获取传递的数据
         Intent intent = getIntent();
         String cameraId = intent.getStringExtra("cameraId");
@@ -93,10 +99,19 @@ public class CameraDetailActivity extends AppCompatActivity {
         if (cameraId != null) {
             loadCameraDetail(cameraId);
             loadUserReviews(cameraId);
+            fetchMinPrice(cameraId);
         }
         if (imageUrl != null) {
             loadImage(imageUrl);
         }
+
+        Button2.setOnClickListener(view -> {
+            if (platform != null) {
+                handlePlatformAction(platform);
+            } else {
+                Toast.makeText(this, "Platform data not loaded", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void loadCameraDetail(String cameraId) {
@@ -140,6 +155,7 @@ public class CameraDetailActivity extends AppCompatActivity {
                     continuousShotTextView.setText(String.valueOf(cameraDetail.getContinuousShot()));
                     videoResolutionTextView.setText(String.valueOf(cameraDetail.getVideoResolution()));
                     videoRateTextView.setText(String.valueOf(cameraDetail.getVideoRate()));
+
                 });
             }
         });
@@ -197,5 +213,85 @@ public class CameraDetailActivity extends AppCompatActivity {
                 .placeholder(R.drawable.placeholder_image)
                 .into(cameraImageView);
     }
+
+    private void fetchMinPrice(String cameraId) {
+        String url = MIN_PRICE_URL + cameraId;
+
+        OkHttpClient client = new OkHttpClient();
+
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+                // 在UI线程上显示错误信息
+                runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Failed to fetch data", Toast.LENGTH_SHORT).show());
+            }
+
+            @Override
+            public void onResponse(Call call,Response response) throws IOException {
+                if (response.isSuccessful() && response.body() != null) {
+                    String responseBody = response.body().string();
+                    Gson gson = new Gson();
+
+                    MinPriceDTO minPriceDTO = gson.fromJson(responseBody, MinPriceDTO.class);
+
+                    // 在UI线程上更新UI
+                    runOnUiThread(() -> {
+                        if (minPriceDTO != null) {
+                            platform = minPriceDTO.getPlatform();
+                            double price = minPriceDTO.getPrice();
+                            minPrice.setText(price+"("+platform+")");
+                        }
+                    });
+                }
+            }
+        });
+    }
+    private void handlePlatformAction(String platform) {
+        switch (platform.toUpperCase()) {
+            case "JD":
+                openAppOrWebsite("com.jingdong.app.mall", "https://www.jd.com");
+                break;
+            case "TB":
+                openAppOrWebsite("com.taobao.taobao", "https://www.taobao.com");
+                break;
+            case "AMAZON":
+                openAppOrWebsite("com.amazon.mShop.android.shopping", "https://www.amazon.com");
+                break;
+            default:
+                Toast.makeText(this, "Platform not supported yet", Toast.LENGTH_SHORT).show();
+                break;
+        }
+    }
+
+    private void openAppOrWebsite(String packageName, String url) {
+        if (isAppInstalled(packageName)) {
+            Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
+            if (intent != null) {
+                startActivity(intent);
+            } else {
+                Toast.makeText(this, "Unable to open app", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity(intent);
+        }
+    }
+
+    private boolean isAppInstalled(String packageName) {
+        PackageManager packageManager = getPackageManager();
+        try {
+            packageManager.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
+    }
+
+
 }
 
