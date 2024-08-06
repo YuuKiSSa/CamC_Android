@@ -171,11 +171,12 @@ public class LoginFragment extends Fragment {
                 String resp = response.body().string();
                 Log.d("NetworkRequest", "Response: " + resp);
 
-                // 解析JSON响应为CameraDTO对象
+                //解析JSON响应为CameraDTO对象
                 Gson gson = new Gson();
                 CameraDTO camera = gson.fromJson(resp, CameraDTO.class);
                 System.out.println(resp);
                 System.out.println(camera);
+
 
                 getActivity().runOnUiThread(() -> sendNotification(camera));
 
@@ -199,15 +200,16 @@ public class LoginFragment extends Fragment {
     @SuppressLint("MissingPermission")
     private void sendNotification(CameraDTO camera) {
         Log.d("Notification", "Sending notification for camera: " + camera.toString());
-
+        Log.d("Notification", "Camera ID: " + camera.getId());
         new Thread(() -> {
             Bitmap bitmap = getBitmapFromURL(camera.getImageUrl());
 
             // 创建点击通知时的Intent
             Intent intent = new Intent(getActivity(), CameraDetailActivity.class);
-            intent.putExtra("cameraId", camera.getId());
+            intent.putExtra("cameraId", String.valueOf(camera.getId()));
             intent.putExtra("imageUrl", camera.getImageUrl());
             PendingIntent pendingIntent = PendingIntent.getActivity(getActivity(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
 
             // 创建通知
             NotificationCompat.Builder builder = new NotificationCompat.Builder(getActivity(), CHANNEL_ID)

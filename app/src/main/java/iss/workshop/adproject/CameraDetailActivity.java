@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -95,7 +96,7 @@ public class CameraDetailActivity extends AppCompatActivity {
         Intent intent = getIntent();
         String cameraId = intent.getStringExtra("cameraId");
         String imageUrl = intent.getStringExtra("imageUrl");
-
+        
         if (cameraId != null) {
             loadCameraDetail(cameraId);
             loadUserReviews(cameraId);
