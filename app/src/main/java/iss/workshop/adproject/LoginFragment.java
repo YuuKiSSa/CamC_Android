@@ -205,7 +205,7 @@ public class LoginFragment extends Fragment {
 
             // 创建点击通知时的Intent
             Intent intent = new Intent(getActivity(), CameraDetailActivity.class);
-            intent.putExtra("cameraId", camera.getId());
+            intent.putExtra("cameraId", String.valueOf(camera.getId()));
             intent.putExtra("imageUrl", camera.getImageUrl());
             PendingIntent pendingIntent = PendingIntent.getActivity(getActivity(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 

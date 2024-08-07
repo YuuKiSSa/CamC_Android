@@ -51,16 +51,7 @@
                 app:layout_constraintHorizontal_bias="0.938"
                 app:layout_constraintStart_toStartOf="parent" />
 
-            <Button
-                android:id="@+id/Button1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Price trend"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.938"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="1.0" />
+
 
             <TextView
                 android:id="@+id/minPrice"
@@ -413,6 +404,7 @@
                             android:layout_weight="1"
                             android:orientation="vertical">
 
+
                             <TextView
                                 android:id="@+id/videoRateLabel"
                                 android:layout_width="wrap_content"
@@ -430,6 +422,33 @@
                                 android:text=""
                                 android:textColor="@color/secondary_text" />
                         </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="1dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_horizontal">
+
+                        <Button
+                            android:id="@+id/save"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:drawablePadding="8dp"
+                            android:text="Like"
+                            android:textColor="@color/primary_text"
+                            android:textStyle="bold"
+                            android:layout_marginEnd="30dp"/>
+
+                        <Button
+                            android:id="@+id/Button1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:drawablePadding="8dp"
+                            android:text="Price trend"
+                            android:textColor="@color/primary_text"
+                            android:textStyle="bold"/>
                     </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>

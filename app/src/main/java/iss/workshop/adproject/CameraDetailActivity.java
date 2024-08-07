@@ -27,8 +27,10 @@ import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class CameraDetailActivity extends AppCompatActivity {
@@ -36,6 +38,8 @@ public class CameraDetailActivity extends AppCompatActivity {
     private static final String CAMERA_DETAIL_URL = "http://10.0.2.2:8080/api/details/";
     private static final String USER_REVIEWS_URL = "http://10.0.2.2:8080/api/review/";
     private static final String MIN_PRICE_URL = "http://10.0.2.2:8080/api/minPrice/";
+    private static final String ADD_FAVORITE_URL = "http://10.0.2.2:8080/api/favorite/add";
+    private static final String DELETE_FAVORITE_URL = "http://10.0.2.2:8080/api/favorite/delete";
     private ImageView cameraImageView;
     private TextView brandTextView;
     private TextView modelTextView;
@@ -45,6 +49,7 @@ public class CameraDetailActivity extends AppCompatActivity {
     private TextView initialPriceTextView;
     private TextView effectivePixelTextView;
     private TextView isoTextView;
+    private Button saveButton;
     private TextView focusPointTextView;
     private TextView continuousShotTextView;
     private TextView videoResolutionTextView;
@@ -55,9 +60,11 @@ public class CameraDetailActivity extends AppCompatActivity {
     private TextView minPrice;
     private String platform;
     private OkHttpClient client = new OkHttpClient();
+    private boolean isFavorite;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        client = MyOkHttpClient.getInstance(getApplicationContext());
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera_detail);
 
@@ -65,6 +72,7 @@ public class CameraDetailActivity extends AppCompatActivity {
         cameraImageView = findViewById(R.id.cameraImageView);
         brandTextView = findViewById(R.id.brand);
         modelTextView = findViewById(R.id.model);
+        saveButton = findViewById(R.id.save);
         categoryTextView = findViewById(R.id.category);
         descriptionTextView = findViewById(R.id.description);
         releaseTimeTextView = findViewById(R.id.releaseTime);
@@ -100,10 +108,18 @@ public class CameraDetailActivity extends AppCompatActivity {
             loadCameraDetail(cameraId);
             loadUserReviews(cameraId);
             fetchMinPrice(cameraId);
+            checkFavoriteStatus(cameraId);
         }
         if (imageUrl != null) {
             loadImage(imageUrl);
         }
+        saveButton.setOnClickListener(view -> {
+            if (isFavorite) {
+                deleteFavorite(cameraId);
+            } else {
+                addFavorite(cameraId);
+            }
+        });
 
         Button2.setOnClickListener(view -> {
             if (platform != null) {
@@ -189,8 +205,12 @@ public class CameraDetailActivity extends AppCompatActivity {
 
                 // 展开所有的 reviews 到一个列表中
                 List<ReviewDetailDTO> allReviews = new ArrayList<>();
-                for (UserReviewDTO userReview : userReviews) {
-                    allReviews.addAll(userReview.getReviews());
+                if (userReviews != null) { // 确保 userReviews 不为空
+                    for (UserReviewDTO userReview : userReviews) {
+                        if (userReview.getReviews() != null) { // 确保每个 userReview 的 reviews 不为空
+                            allReviews.addAll(userReview.getReviews());
+                        }
+                    }
                 }
 
                 runOnUiThread(() -> {
@@ -291,7 +311,118 @@ public class CameraDetailActivity extends AppCompatActivity {
             return false;
         }
     }
+    private void checkFavoriteStatus(String cameraId) {
+        // 发起请求检查当前相机是否已被收藏（此处假设有相应的 API）
+        // 假设 API 返回一个布尔值，表示是否已收藏
+        Request request = new Request.Builder()
+                .url("http://10.0.2.2:8080/api/favorite")
+                .get()
+                .build();
 
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Request Failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (!response.isSuccessful()) {
+                    String errorResponse = response.body().string();
+                    runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Unexpected code " + response.code() + ": " + errorResponse, Toast.LENGTH_LONG).show());
+                    return;
+                }
+
+                String resp = response.body().string();
+                isFavorite = Boolean.parseBoolean(resp);
+                runOnUiThread(() -> updateSaveButton());
+            }
+        });
+    }
+
+    private void updateSaveButton() {
+        if (isFavorite) {
+            saveButton.setText("Dislike");
+        } else {
+            saveButton.setText("Like");
+        }
+    }
+
+    private void addFavorite(String cameraId) {
+        // 确保传入的 cameraId 不是空值
+        if (cameraId == null || cameraId.isEmpty()) {
+            runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Camera ID must not be null", Toast.LENGTH_LONG).show());
+            return;
+        }
+
+        FavoriteDTO favoriteDTO = new FavoriteDTO(Long.parseLong(cameraId), 0.0); // 假设 favoriteDTO 需要一个 cameraId 和 idealPrice
+
+        Gson gson = new Gson();
+        String json = gson.toJson(favoriteDTO);
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json"), json);
+
+        Request request = new Request.Builder()
+                .url(ADD_FAVORITE_URL)
+                .post(body)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Failed to add favorite: " + e.getMessage(), Toast.LENGTH_LONG).show());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    isFavorite = true;
+                    runOnUiThread(() -> updateSaveButton());
+                } else {
+                    String errorResponse = response.body().string();
+                    runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Error: " + errorResponse, Toast.LENGTH_LONG).show());
+                }
+            }
+        });
+    }
+
+    private void deleteFavorite(String cameraId) {
+        // 确保传入的 cameraId 不是空值
+        if (cameraId == null || cameraId.isEmpty()) {
+            runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Camera ID must not be null", Toast.LENGTH_LONG).show());
+            return;
+        }
+
+        FavoriteDTO favoriteDTO = new FavoriteDTO(Long.parseLong(cameraId), 0.0); // 假设 favoriteDTO 需要一个 cameraId 和 idealPrice
+
+        Gson gson = new Gson();
+        String json = gson.toJson(favoriteDTO);
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json"), json);
+
+        Request request = new Request.Builder()
+                .url(DELETE_FAVORITE_URL)
+                .delete(body)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Failed to delete favorite: " + e.getMessage(), Toast.LENGTH_LONG).show());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    isFavorite = false;
+                    runOnUiThread(() -> updateSaveButton());
+                } else {
+                    String errorResponse = response.body().string();
+                    runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Error: " + errorResponse, Toast.LENGTH_LONG).show());
+                }
+            }
+        });
+    }
 
 }
 
