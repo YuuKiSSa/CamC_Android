@@ -129,6 +129,7 @@ public class CameraDTO {
     public void setImageUrl(String url) {
         this.imageUrl = url;
     }
+
     @Override
     public String toString() {
         return "CameraDTO{" +
