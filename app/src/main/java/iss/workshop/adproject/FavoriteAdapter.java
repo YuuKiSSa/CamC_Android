@@ -1,6 +1,10 @@
 package iss.workshop.adproject;
 
+import android.annotation.SuppressLint;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +15,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+
 import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 import java.io.IOException;
@@ -30,6 +37,7 @@ public class FavoriteAdapter extends ArrayAdapter<CameraFavouriteDTO> {
     private OkHttpClient client = new OkHttpClient();
     private static final String DELETE_FAVORITE_URL = "http://10.0.2.2:8080/api/favorite/delete";
     private FavouriteFragment fragment;
+    private static final String CHANNEL_ID = "price_alert_channel";
 
     public FavoriteAdapter(@NonNull Context context, FavouriteFragment fragment, List<CameraFavouriteDTO> favoriteList) {
         super(context, R.layout.item_favorite, favoriteList);
@@ -37,6 +45,7 @@ public class FavoriteAdapter extends ArrayAdapter<CameraFavouriteDTO> {
         this.favoriteList = favoriteList;
         this.fragment = fragment;
         this.client = MyOkHttpClient.getInstance(context);
+        NotificationHelper.createNotificationChannel(context); // 创建通知通道
     }
 
     @NonNull
@@ -64,11 +73,41 @@ public class FavoriteAdapter extends ArrayAdapter<CameraFavouriteDTO> {
         modelView.setText(favorite.getModel());
         priceView.setText(String.format("￥%.2f", favorite.getIdealPrice()));
 
+        // 价格检查
+        if (favorite.getIdealPrice() >= favorite.getLatestPrice()) {
+            sendPriceAlertNotification(favorite);
+        }
+
         deleteButton.setOnClickListener(v -> {
             deleteFavorite(favorite.getId(), position);
         });
 
         return convertView;
+    }
+    @SuppressLint("MissingPermission")
+    private void sendPriceAlertNotification(CameraFavouriteDTO favorite) {
+        if (isNotificationSent(favorite.getId())) {
+            return; // 如果通知已经发送，则不再发送
+        }
+
+        Intent intent = new Intent(context, CameraDetailActivity.class);
+        intent.putExtra("cameraId", String.valueOf(favorite.getId()));
+        intent.putExtra("imageUrl", favorite.getImageUrl());
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_camera) // 请确保在res/drawable中有这个图标
+                .setContentTitle("Price Alert")
+                .setContentText(favorite.getBrand().toString() + " " + favorite.getModel() + " is now within your ideal price!")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .setDefaults(NotificationCompat.DEFAULT_SOUND);
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+        notificationManager.notify(String.valueOf(favorite.getId()).hashCode(), builder.build());
+
+        markNotificationAsSent(favorite.getId()); // 标记通知已发送
     }
 
     private void deleteFavorite(Long cameraId, int position) {
@@ -116,4 +155,16 @@ public class FavoriteAdapter extends ArrayAdapter<CameraFavouriteDTO> {
             }
         });
     }
+    private boolean isNotificationSent(Long cameraId) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences("Notifications", Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(String.valueOf(cameraId), false);
+    }
+
+    private void markNotificationAsSent(Long cameraId) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences("Notifications", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(String.valueOf(cameraId), true);
+        editor.apply();
+    }
+
 }

@@ -24,7 +24,6 @@ public class FavouriteFragment extends Fragment {
 
     private ListView favouriteListView;
     OkHttpClient client = new OkHttpClient();
-    private static final String CAMERA_DETAIL_URL = "http://10.0.2.2:8080/api/details/";
 
     public FavouriteFragment() {
         // Required empty public constructor

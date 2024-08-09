@@ -61,6 +61,7 @@ public class ProfileFragment extends Fragment {
             favourite.setOnClickListener(v -> {
                 FragmentManager fragmentManager = getParentFragmentManager();
                 clearFragmentContainer(fragmentManager);
+                fragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 fragmentManager.beginTransaction().replace(R.id.fragment_container, new FavouriteFragment()).addToBackStack(null).commit();
             });
 

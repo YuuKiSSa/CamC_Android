@@ -8,6 +8,7 @@ public class CameraFavouriteDTO {
     private String model;
     private double idealPrice;
     private String imageUrl;
+    private double latestPrice;
 
     // Getters and setters
     public long getId() {
@@ -49,4 +50,13 @@ public class CameraFavouriteDTO {
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
+
+    public double getLatestPrice() {
+        return latestPrice;
+    }
+
+    public void setLatestPrice(double latestPrice) {
+        this.latestPrice = latestPrice;
+    }
+
 }

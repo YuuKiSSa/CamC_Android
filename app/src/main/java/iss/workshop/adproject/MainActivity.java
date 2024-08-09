@@ -18,6 +18,8 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.ProcessLifecycleOwner;
 
 
 import java.util.List;
@@ -31,6 +33,7 @@ public class MainActivity extends AppCompatActivity{
     private EditText minPrice, maxPrice;
     private CheckBox brandCanon, brandSony, brandNikon, tagLandscape, tagPortrait, tagSports;
     private Button applyFilterButton;
+    private AppLifecycleObserver appLifecycleObserver;
     OkHttpClient client = new OkHttpClient();
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,7 +60,7 @@ public class MainActivity extends AppCompatActivity{
             applyFilters();
             hideKeyboard();
         });
-
+        ProcessLifecycleOwner.get().getLifecycle().addObserver(new AppLifecycleObserver(this));
         navHome.setOnClickListener(view -> switchFragment(new HomeFragment()));
         navCamera.setOnClickListener(view -> switchFragment(new CameraFragment()));
         navProfile.setOnClickListener(view -> switchFragment(new ProfileFragment()));
@@ -69,8 +72,20 @@ public class MainActivity extends AppCompatActivity{
     }
 
     private void switchFragment(Fragment fragment) {
-        getSupportFragmentManager().beginTransaction().replace(R.id.frame_layout, fragment).commit();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        clearFragmentContainer(fragmentManager);  // 清理先前的 Fragment
+        fragmentManager.beginTransaction()
+                .replace(R.id.frame_layout, fragment)
+                //.addToBackStack(null)  // 确保事务被添加到返回栈中
+                .commit();
     }
+
+    private void clearFragmentContainer(FragmentManager fragmentManager) {
+        for (Fragment fragment : fragmentManager.getFragments()) {
+            fragmentManager.beginTransaction().remove(fragment).commit();
+        }
+    }
+
     public void openDrawer() {
         if (drawerLayout != null) {
             drawerLayout.openDrawer(GravityCompat.START);
