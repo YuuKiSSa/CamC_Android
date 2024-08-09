@@ -41,6 +41,7 @@ public class CameraFragment extends Fragment {
     CameraListAdapter adapter;
     private ImageView filterIcon;
     private DrawerLayout drawerLayout;
+    private static final String MIN_PRICE_URL = "http://10.0.2.2:8080/api/minPrice/";
     private static final String URL = "http://10.0.2.2:8080/api/list-tag";
     private OkHttpClient client = new OkHttpClient();
     private ListView listView;
@@ -50,6 +51,7 @@ public class CameraFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_camera, container, false);
+        client = MyOkHttpClient.getInstance(getContext());
         listView = view.findViewById(R.id.listView);
         sendGet();
         filterIcon = view.findViewById(R.id.filter_icon);

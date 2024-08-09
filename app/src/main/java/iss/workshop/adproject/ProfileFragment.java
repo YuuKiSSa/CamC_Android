@@ -1,5 +1,6 @@
 package iss.workshop.adproject;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -25,8 +26,8 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class ProfileFragment extends Fragment {
-
     private SharedPreferences sharedPreferences;
+    OkHttpClient client = new OkHttpClient();
     public ProfileFragment() {
         // Required empty public constructor
     }
@@ -35,9 +36,10 @@ public class ProfileFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        client = MyOkHttpClient.getInstance(getContext());
         sharedPreferences = getActivity().getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE);
         boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
-
+        System.out.println(isLoggedIn);
         if (isLoggedIn) {
             return inflater.inflate(R.layout.fragment_profile_logged_in, container, false);
         } else {
@@ -48,17 +50,22 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         if (sharedPreferences.getBoolean("isLoggedIn", false)) {
             TextView tvUsername = view.findViewById(R.id.tv_username);
             Button btnLogout = view.findViewById(R.id.btn_logout);
+            Button favourite = view.findViewById(R.id.favourite);
 
             String username = sharedPreferences.getString("username", "Guest");
             tvUsername.setText(username);
 
+            favourite.setOnClickListener(v -> {
+                FragmentManager fragmentManager = getParentFragmentManager();
+                clearFragmentContainer(fragmentManager);
+                fragmentManager.beginTransaction().replace(R.id.fragment_container, new FavouriteFragment()).addToBackStack(null).commit();
+            });
+
             btnLogout.setOnClickListener(v -> {
                 // 创建 OkHttpClient 实例
-                OkHttpClient client = new OkHttpClient();
 
                 // 创建请求
                 Request request = new Request.Builder()
@@ -114,6 +121,7 @@ public class ProfileFragment extends Fragment {
                 fragmentManager.beginTransaction().replace(R.id.fragment_container, new RegisterFragment()).addToBackStack(null).commit();
             });
         }
+
     }
     private void clearFragmentContainer(FragmentManager fragmentManager) {
         for (Fragment fragment : fragmentManager.getFragments()) {

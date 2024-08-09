@@ -1,7 +1,7 @@
 package iss.workshop.adproject;
 
-
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,6 +42,13 @@ public class LikeAdapter extends RecyclerView.Adapter<LikeAdapter.ViewHolder> {
         holder.brandView.setText(camera.getBrand().toString());
         holder.modelView.setText(camera.getModel());
         holder.priceView.setText(String.format("￥%.2f", camera.getInitialPrice()));
+
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, CameraDetailActivity.class);
+            intent.putExtra("cameraId", String.valueOf(camera.getId()));
+            intent.putExtra("imageUrl", camera.getImageUrl());
+            context.startActivity(intent);
+        });
     }
 
     @Override
@@ -61,7 +68,6 @@ public class LikeAdapter extends RecyclerView.Adapter<LikeAdapter.ViewHolder> {
             priceView = itemView.findViewById(R.id.camera_price);
             brandView = itemView.findViewById(R.id.camera_brand);
             modelView = itemView.findViewById(R.id.camera_model);
-
         }
     }
 }

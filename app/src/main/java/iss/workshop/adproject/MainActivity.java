@@ -2,6 +2,7 @@ package iss.workshop.adproject;
 
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import android.view.View;
@@ -17,14 +18,22 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.ProcessLifecycleOwner;
 
 
+import java.io.IOException;
 import java.util.List;
 
+import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 
 public class MainActivity extends AppCompatActivity{
+    private SharedPreferences sharedPreferences;
     private List<String> itemList;
     private DrawerLayout drawerLayout;
     private EditText minPrice, maxPrice;
@@ -37,7 +46,7 @@ public class MainActivity extends AppCompatActivity{
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
-
+       // sharedPreferences = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
         drawerLayout = findViewById(R.id.drawer_layout);
         TextView navHome = findViewById(R.id.nav_home);
         TextView navCamera = findViewById(R.id.nav_camera);
@@ -61,6 +70,7 @@ public class MainActivity extends AppCompatActivity{
         navCamera.setOnClickListener(view -> switchFragment(new CameraFragment()));
         navProfile.setOnClickListener(view -> switchFragment(new ProfileFragment()));
 
+        ProcessLifecycleOwner.get().getLifecycle().addObserver(new AppLifecycleObserver(this));
         // Default fragment
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction().replace(R.id.frame_layout, new HomeFragment()).commit();
@@ -72,6 +82,7 @@ public class MainActivity extends AppCompatActivity{
         clearFragmentContainer(fragmentManager);
         getSupportFragmentManager().beginTransaction().replace(R.id.frame_layout, fragment).commit();
     }
+
     public void openDrawer() {
         if (drawerLayout != null) {
             drawerLayout.openDrawer(GravityCompat.START);

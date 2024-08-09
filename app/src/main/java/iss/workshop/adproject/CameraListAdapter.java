@@ -110,11 +110,11 @@ public class CameraListAdapter extends BaseAdapter implements Filterable {
                 // 价格筛选
                 if (!minPriceStr.isEmpty()) {
                     double min = Double.parseDouble(minPriceStr);
-                    if (camera.getInitialPrice() < min) matches = false;
+                    if (camera.getLatestPrice() < min) matches = false;
                 }
                 if (!maxPriceStr.isEmpty()) {
                     double max = Double.parseDouble(maxPriceStr);
-                    if (camera.getInitialPrice() > max) matches = false;
+                    if (camera.getLatestPrice() > max) matches = false;
                 }
 
                 // 品牌筛选

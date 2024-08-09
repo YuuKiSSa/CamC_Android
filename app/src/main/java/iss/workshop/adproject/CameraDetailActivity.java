@@ -1,14 +1,20 @@
 package iss.workshop.adproject;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -117,19 +123,47 @@ public class CameraDetailActivity extends AppCompatActivity {
             if (isFavorite) {
                 deleteFavorite(cameraId);
             } else {
-                addFavorite(cameraId);
+                showIdealPriceDialog(cameraId);
             }
         });
 
         Button2.setOnClickListener(view -> {
-            if (platform != null) {
-                handlePlatformAction(platform);
+            if (platform != null && cameraId != null) {
+                fetchPriceDetails(cameraId);
             } else {
-                Toast.makeText(this, "Platform data not loaded", Toast.LENGTH_SHORT).show();
+                Toast.makeText(CameraDetailActivity.this, "Platform or camera ID not loaded", Toast.LENGTH_SHORT).show();
             }
         });
     }
+    private void fetchPriceDetails(String cameraId) {
+        String url = "http://10.0.2.2:8080/api/price/" + cameraId;
 
+        OkHttpClient client = new OkHttpClient();
+
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+                runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Failed to fetch price details", Toast.LENGTH_SHORT).show());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful() && response.body() != null) {
+                    String responseBody = response.body().string();
+                    Gson gson = new Gson();
+                    Type listType = new TypeToken<ArrayList<PriceDTO>>() {}.getType();
+                    List<PriceDTO> priceList = gson.fromJson(responseBody, listType);
+
+                    runOnUiThread(() -> handlePlatformAction(priceList, platform));
+                }
+            }
+        });
+    }
     private void loadCameraDetail(String cameraId) {
         Request request = new Request.Builder()
                 .url(CAMERA_DETAIL_URL + cameraId)
@@ -271,35 +305,58 @@ public class CameraDetailActivity extends AppCompatActivity {
             }
         });
     }
-    private void handlePlatformAction(String platform) {
+    private void handlePlatformAction(List<PriceDTO> priceList, String platform) {
+        for (PriceDTO priceDTO : priceList) {
+            if (platform.equalsIgnoreCase(priceDTO.getPlatform())) {
+                if (!priceDTO.getDetails().isEmpty()) {
+                    String productLink = priceDTO.getDetails().get(0).getLink(); // 获取商品链接
+                    openAppOrWebsite(platform, productLink); // 使用商品链接替换原有平台链接
+                } else {
+                    Toast.makeText(getApplicationContext(), "No product details found for platform: " + platform, Toast.LENGTH_SHORT).show();
+                }
+                return;
+            }
+        }
+        Toast.makeText(getApplicationContext(), "Platform not supported yet", Toast.LENGTH_SHORT).show();
+    }
+
+    private void openAppOrWebsite(String platform, String productLink) {
+        String packageName;
         switch (platform.toUpperCase()) {
             case "JD":
-                openAppOrWebsite("com.jingdong.app.mall", "https://www.jd.com");
+                packageName = "com.jingdong.app.mall";
                 break;
             case "TB":
-                openAppOrWebsite("com.taobao.taobao", "https://www.taobao.com");
+                packageName = "com.taobao.taobao";
                 break;
             case "AMAZON":
-                openAppOrWebsite("com.amazon.mShop.android.shopping", "https://www.amazon.com");
+                packageName = "com.amazon.mShop.android.shopping";
                 break;
             default:
-                Toast.makeText(this, "Platform not supported yet", Toast.LENGTH_SHORT).show();
+                packageName = null;
                 break;
+        }
+
+        if (packageName != null && isAppInstalled(packageName)) {
+            Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
+            if (intent != null) {
+                intent.setData(Uri.parse(productLink));
+                Log.d("ProductLink", productLink);
+                try {
+                    startActivity(intent);
+                } catch (ActivityNotFoundException e) {
+                    // 如果应用未找到，使用浏览器打开
+                    openInBrowser(productLink);
+                }
+            }
+        } else {
+            openInBrowser(productLink);
         }
     }
 
-    private void openAppOrWebsite(String packageName, String url) {
-        if (isAppInstalled(packageName)) {
-            Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
-            if (intent != null) {
-                startActivity(intent);
-            } else {
-                Toast.makeText(this, "Unable to open app", Toast.LENGTH_SHORT).show();
-            }
-        } else {
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-            startActivity(intent);
-        }
+    private void openInBrowser(String url) {
+        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        startActivity(browserIntent);
     }
 
     private boolean isAppInstalled(String packageName) {
@@ -312,10 +369,11 @@ public class CameraDetailActivity extends AppCompatActivity {
         }
     }
     private void checkFavoriteStatus(String cameraId) {
-        // 发起请求检查当前相机是否已被收藏（此处假设有相应的 API）
-        // 假设 API 返回一个布尔值，表示是否已收藏
+        // 构建URL
+        String url = "http://10.0.2.2:8080/api/favorite";
+
         Request request = new Request.Builder()
-                .url("http://10.0.2.2:8080/api/favorite")
+                .url(url)
                 .get()
                 .build();
 
@@ -328,17 +386,21 @@ public class CameraDetailActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 if (!response.isSuccessful()) {
-                    String errorResponse = response.body().string();
-                    runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Unexpected code " + response.code() + ": " + errorResponse, Toast.LENGTH_LONG).show());
+                    runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Please login to like the items", Toast.LENGTH_LONG).show());
                     return;
                 }
 
                 String resp = response.body().string();
-                isFavorite = Boolean.parseBoolean(resp);
+                Gson gson = new Gson();
+                Type favoriteListType = new TypeToken<List<FavoriteDTO>>(){}.getType();
+                List<FavoriteDTO> favoriteList = gson.fromJson(resp, favoriteListType);
+
+                isFavorite = favoriteList.stream().anyMatch(favorite -> String.valueOf(favorite.getCameraId()).equals(cameraId));
                 runOnUiThread(() -> updateSaveButton());
             }
         });
     }
+
 
     private void updateSaveButton() {
         if (isFavorite) {
@@ -348,14 +410,38 @@ public class CameraDetailActivity extends AppCompatActivity {
         }
     }
 
-    private void addFavorite(String cameraId) {
-        // 确保传入的 cameraId 不是空值
+    private void showIdealPriceDialog(String cameraId) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_ideal_price, null);
+        builder.setView(dialogView);
+
+        EditText editTextIdealPrice = dialogView.findViewById(R.id.editTextIdealPrice);
+        Button buttonSubmit = dialogView.findViewById(R.id.buttonSubmit);
+
+        AlertDialog dialog = builder.create();
+
+        buttonSubmit.setOnClickListener(v -> {
+            String idealPriceStr = editTextIdealPrice.getText().toString();
+            if (!idealPriceStr.isEmpty()) {
+                double idealPrice = Double.parseDouble(idealPriceStr);
+                addFavorite(cameraId, idealPrice);
+                dialog.dismiss();
+            } else {
+                Toast.makeText(CameraDetailActivity.this, "Please enter an ideal price", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        dialog.show();
+    }
+
+    private void addFavorite(String cameraId, double idealPrice) {
         if (cameraId == null || cameraId.isEmpty()) {
             runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Camera ID must not be null", Toast.LENGTH_LONG).show());
             return;
         }
 
-        FavoriteDTO favoriteDTO = new FavoriteDTO(Long.parseLong(cameraId), 0.0); // 假设 favoriteDTO 需要一个 cameraId 和 idealPrice
+        FavoriteDTO favoriteDTO = new FavoriteDTO(Long.parseLong(cameraId), idealPrice);
 
         Gson gson = new Gson();
         String json = gson.toJson(favoriteDTO);
@@ -377,7 +463,10 @@ public class CameraDetailActivity extends AppCompatActivity {
             public void onResponse(Call call, Response response) throws IOException {
                 if (response.isSuccessful()) {
                     isFavorite = true;
-                    runOnUiThread(() -> updateSaveButton());
+                    runOnUiThread(() -> {
+                        updateSaveButton();
+                        Toast.makeText(CameraDetailActivity.this, "Favorite added successfully", Toast.LENGTH_SHORT).show();
+                    });
                 } else {
                     String errorResponse = response.body().string();
                     runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Error: " + errorResponse, Toast.LENGTH_LONG).show());

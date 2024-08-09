@@ -108,7 +108,7 @@ public class LoginFragment extends Fragment {
                                 Log.d("LoginResponse", "Response Body: " + responseBody);
 
                                 if (responseBody.contains("Logged in successfully")) {
-                                    // 保存登录状态
+                                    // 保存登录状态和token
                                     SharedPreferences sharedPreferences = getActivity().getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE);
                                     SharedPreferences.Editor editor = sharedPreferences.edit();
                                     editor.putBoolean("isLoggedIn", true);
@@ -116,14 +116,11 @@ public class LoginFragment extends Fragment {
                                     editor.apply();
 
                                     Toast.makeText(getActivity(), "Login Successful", Toast.LENGTH_SHORT).show();
-
+                                    sendGetMostPreferredCamera();
                                     // 替换当前的 Fragment 为 ProfileFragment
                                     FragmentManager fragmentManager = getParentFragmentManager();
                                     fragmentManager.beginTransaction().replace(R.id.fragment_container, new ProfileFragment()).commit();
-
-                                    // 发送 GET 请求获取相机信息并发送通知
-                                    sendGetMostPreferredCamera();
-                                } else {
+                                }  else {
                                     throw new IllegalStateException("Unexpected response: " + responseBody);
                                 }
                             } catch (IOException e) {

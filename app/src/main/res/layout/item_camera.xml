@@ -10,6 +10,7 @@
         android:layout_width="80dp"
         android:layout_height="60dp"
         android:scaleType="centerCrop" />
+
     <TextView
         android:id="@+id/camera_brand"
         android:layout_width="wrap_content"
