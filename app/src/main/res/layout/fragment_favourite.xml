@@ -11,8 +11,10 @@
         android:text="My Favourite"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:gravity="center"
-        android:paddingBottom="16dp"/>
+        android:gravity="left"
+        android:paddingBottom="16dp"
+        android:layout_gravity="left"
+        android:textColor="#235D3A" />
 
     <ListView
         android:id="@+id/favouriteListView"

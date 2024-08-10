@@ -1,5 +1,6 @@
 package iss.workshop.adproject;
 
+import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -14,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -46,6 +48,7 @@ public class CameraDetailActivity extends AppCompatActivity {
     private static final String MIN_PRICE_URL = "http://10.0.2.2:8080/api/minPrice/";
     private static final String ADD_FAVORITE_URL = "http://10.0.2.2:8080/api/favorite/add";
     private static final String DELETE_FAVORITE_URL = "http://10.0.2.2:8080/api/favorite/delete";
+
     private ImageView cameraImageView;
     private TextView brandTextView;
     private TextView modelTextView;
@@ -54,15 +57,10 @@ public class CameraDetailActivity extends AppCompatActivity {
     private TextView releaseTimeTextView;
     private TextView initialPriceTextView;
     private TextView effectivePixelTextView;
-    private TextView isoTextView;
+//    private TextView isoTextView;
     private Button saveButton;
-    private TextView focusPointTextView;
-    private TextView continuousShotTextView;
-    private TextView videoResolutionTextView;
-    private TextView videoRateTextView;
-    private RecyclerView reviewRecyclerView;
-    private ReviewAdapter reviewAdapter;
-    private List<ReviewDetailDTO> reviewList = new ArrayList<>();
+    private final List<ReviewDetailDTO> reviewList = new ArrayList<>();
+
     private TextView minPrice;
     private String platform;
     private OkHttpClient client = new OkHttpClient();
@@ -84,26 +82,29 @@ public class CameraDetailActivity extends AppCompatActivity {
         releaseTimeTextView = findViewById(R.id.releaseTime);
         initialPriceTextView = findViewById(R.id.initialPrice);
         effectivePixelTextView = findViewById(R.id.effectivePixel);
-        isoTextView = findViewById(R.id.iso);
-        focusPointTextView = findViewById(R.id.focusPoint);
-        continuousShotTextView = findViewById(R.id.continuousShot);
-        videoResolutionTextView = findViewById(R.id.videoResolution);
-        videoRateTextView = findViewById(R.id.videoRate);
-        reviewRecyclerView = findViewById(R.id.reviewRecyclerView);
+//        isoTextView = findViewById(R.id.iso);
+//        focusPointTextView = findViewById(R.id.focusPoint);
+//        continuousShotTextView = findViewById(R.id.continuousShot);
+//        videoResolutionTextView = findViewById(R.id.videoResolution);
+//        videoRateTextView = findViewById(R.id.videoRate);
+        //    private TextView focusPointTextView;
+        //    private TextView continuousShotTextView;
+        //    private TextView videoResolutionTextView;
+        //    private TextView videoRateTextView;
+        RecyclerView reviewRecyclerView = findViewById(R.id.reviewRecyclerView);
         Button Button1 = findViewById(R.id.Button1);
         Button Button2 = findViewById(R.id.Button2);
         minPrice = findViewById(R.id.minPrice);
 
         // 配置 RecyclerView
         reviewRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        reviewAdapter = new ReviewAdapter(reviewList);
+        ReviewAdapter reviewAdapter = new ReviewAdapter(reviewList);
         reviewRecyclerView.setAdapter(reviewAdapter);
 
         Button1.setOnClickListener(v -> {
             Intent intent1 = new Intent(CameraDetailActivity.this, ChartActivity.class);
             startActivity(intent1);
         });
-
 
         // 获取传递的数据
         Intent intent = getIntent();
@@ -146,13 +147,13 @@ public class CameraDetailActivity extends AppCompatActivity {
 
         client.newCall(request).enqueue(new Callback() {
             @Override
-            public void onFailure(Call call, IOException e) {
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
                 runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Failed to fetch price details", Toast.LENGTH_SHORT).show());
             }
 
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.isSuccessful() && response.body() != null) {
                     String responseBody = response.body().string();
                     Gson gson = new Gson();
@@ -172,18 +173,20 @@ public class CameraDetailActivity extends AppCompatActivity {
 
         client.newCall(request).enqueue(new Callback() {
             @Override
-            public void onFailure(Call call, IOException e) {
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Request Failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
             }
 
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (!response.isSuccessful()) {
+                    assert response.body() != null;
                     String errorResponse = response.body().string();
                     runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Unexpected code " + response.code() + ": " + errorResponse, Toast.LENGTH_LONG).show());
                     return;
                 }
 
+                assert response.body() != null;
                 String resp = response.body().string();
                 Gson gson = new GsonBuilder()
                         .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())
@@ -200,11 +203,11 @@ public class CameraDetailActivity extends AppCompatActivity {
                     releaseTimeTextView.setText(cameraDetail.getReleaseTime().toString());
                     initialPriceTextView.setText(String.valueOf(cameraDetail.getInitialPrice()));
                     effectivePixelTextView.setText(String.valueOf(cameraDetail.getEffectivePixel()));
-                    isoTextView.setText(String.valueOf(cameraDetail.getISO()));
-                    focusPointTextView.setText(cameraDetail.getFocusPoint() != null ? cameraDetail.getFocusPoint().toString() : "N/A");
-                    continuousShotTextView.setText(String.valueOf(cameraDetail.getContinuousShot()));
-                    videoResolutionTextView.setText(String.valueOf(cameraDetail.getVideoResolution()));
-                    videoRateTextView.setText(String.valueOf(cameraDetail.getVideoRate()));
+//                    isoTextView.setText(String.valueOf(cameraDetail.getISO()));
+//                    focusPointTextView.setText(cameraDetail.getFocusPoint() != null ? cameraDetail.getFocusPoint().toString() : "N/A");
+//                    continuousShotTextView.setText(String.valueOf(cameraDetail.getContinuousShot()));
+//                    videoResolutionTextView.setText(String.valueOf(cameraDetail.getVideoResolution()));
+//                    videoRateTextView.setText(String.valueOf(cameraDetail.getVideoRate()));
 
                 });
             }
@@ -219,17 +222,20 @@ public class CameraDetailActivity extends AppCompatActivity {
 
         client.newCall(request).enqueue(new Callback() {
             @Override
-            public void onFailure(Call call, IOException e) {
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Request Failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
             }
 
+            @SuppressLint("NotifyDataSetChanged")
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (!response.isSuccessful()) {
+                    assert response.body() != null;
                     String errorResponse = response.body().string();
                     runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Unexpected code " + response.code() + ": " + errorResponse, Toast.LENGTH_LONG).show());
                     return;
                 }
+                assert response.body() != null;
                 String resp = response.body().string();
                 Gson gson = new GsonBuilder()
                         .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
@@ -279,14 +285,15 @@ public class CameraDetailActivity extends AppCompatActivity {
 
         client.newCall(request).enqueue(new Callback() {
             @Override
-            public void onFailure(Call call, IOException e) {
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
                 // 在UI线程上显示错误信息
                 runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Failed to fetch data", Toast.LENGTH_SHORT).show());
             }
 
+            @SuppressLint("SetTextI18n")
             @Override
-            public void onResponse(Call call,Response response) throws IOException {
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.isSuccessful() && response.body() != null) {
                     String responseBody = response.body().string();
                     Gson gson = new Gson();
@@ -379,17 +386,18 @@ public class CameraDetailActivity extends AppCompatActivity {
 
         client.newCall(request).enqueue(new Callback() {
             @Override
-            public void onFailure(Call call, IOException e) {
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Request Failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
             }
 
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (!response.isSuccessful()) {
                     runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Please login to like the items", Toast.LENGTH_LONG).show());
                     return;
                 }
 
+                assert response.body() != null;
                 String resp = response.body().string();
                 Gson gson = new Gson();
                 Type favoriteListType = new TypeToken<List<FavoriteDTO>>(){}.getType();
@@ -402,6 +410,7 @@ public class CameraDetailActivity extends AppCompatActivity {
     }
 
 
+    @SuppressLint("SetTextI18n")
     private void updateSaveButton() {
         if (isFavorite) {
             saveButton.setText("Dislike");
@@ -455,12 +464,12 @@ public class CameraDetailActivity extends AppCompatActivity {
 
         client.newCall(request).enqueue(new Callback() {
             @Override
-            public void onFailure(Call call, IOException e) {
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Failed to add favorite: " + e.getMessage(), Toast.LENGTH_LONG).show());
             }
 
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.isSuccessful()) {
                     isFavorite = true;
                     runOnUiThread(() -> {
@@ -468,6 +477,7 @@ public class CameraDetailActivity extends AppCompatActivity {
                         Toast.makeText(CameraDetailActivity.this, "Favorite added successfully", Toast.LENGTH_SHORT).show();
                     });
                 } else {
+                    assert response.body() != null;
                     String errorResponse = response.body().string();
                     runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Error: " + errorResponse, Toast.LENGTH_LONG).show());
                 }
@@ -496,16 +506,17 @@ public class CameraDetailActivity extends AppCompatActivity {
 
         client.newCall(request).enqueue(new Callback() {
             @Override
-            public void onFailure(Call call, IOException e) {
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Failed to delete favorite: " + e.getMessage(), Toast.LENGTH_LONG).show());
             }
 
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.isSuccessful()) {
                     isFavorite = false;
                     runOnUiThread(() -> updateSaveButton());
                 } else {
+                    assert response.body() != null;
                     String errorResponse = response.body().string();
                     runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Error: " + errorResponse, Toast.LENGTH_LONG).show());
                 }
