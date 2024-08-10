@@ -39,6 +39,7 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
     implementation 'com.squareup.okhttp3:okhttp:4.9.0'
     implementation libs.annotation
+    implementation 'androidx.activity:activity:1.6.0'
     implementation libs.lifecycle.livedata.ktx
     implementation libs.lifecycle.viewmodel.ktx
     apply plugin: 'com.google.gms.google-services'

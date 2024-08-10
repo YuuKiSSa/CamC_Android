@@ -1,6 +1,8 @@
 package iss.workshop.adproject;
 
 import android.os.Bundle;
+
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -56,7 +58,17 @@ public class RegisterFragment extends Fragment {
             etPassword = view.findViewById(R.id.et_password);
             etConfirmPassword = view.findViewById(R.id.et_confirm_password);
             btnRegister = view.findViewById(R.id.btn_register);
-
+            // 处理返回按钮
+            requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
+                @Override
+                public void handleOnBackPressed() {
+                    FragmentManager fragmentManager = getParentFragmentManager();
+                    fragmentManager.beginTransaction()
+                            .replace(R.id.fragment_container, new ProfileFragment())
+                            .addToBackStack(null) // 添加到返回栈中
+                            .commit();
+                }
+            });
             btnRegister.setOnClickListener(v -> {
                 String username = etUsername.getText().toString();
                 String password = etPassword.getText().toString();
@@ -100,8 +112,17 @@ public class RegisterFragment extends Fragment {
                                 Toast.makeText(getActivity(), "Registration Successful", Toast.LENGTH_SHORT).show();
 
                                 // 返回到登录界面
-                                FragmentManager fragmentManager = getParentFragmentManager();
-                                fragmentManager.popBackStack();  // 移除注册Fragment返回到登录Fragment
+                                // 处理返回按钮
+                                requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
+                                    @Override
+                                    public void handleOnBackPressed() {
+                                        FragmentManager fragmentManager = getParentFragmentManager();
+                                        fragmentManager.beginTransaction()
+                                                .replace(R.id.fragment_container, new ProfileFragment())
+                                                .addToBackStack(null) // 添加到返回栈中
+                                                .commit();
+                                    }
+                                });
                             });
                         }
                     } else {

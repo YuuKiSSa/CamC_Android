@@ -65,6 +65,8 @@ public class CameraDetailActivity extends AppCompatActivity {
     private String platform;
     private OkHttpClient client = new OkHttpClient();
     private boolean isFavorite;
+    List<FavoriteDTO> favoriteList;
+    int error_flag=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,15 +123,20 @@ public class CameraDetailActivity extends AppCompatActivity {
             loadImage(imageUrl);
         }
         saveButton.setOnClickListener(view -> {
+            if(error_flag==1){
+                runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Please log in to like products" , Toast.LENGTH_LONG).show());
+            }
+            else{
             if (isFavorite) {
                 deleteFavorite(cameraId);
             } else {
                 showIdealPriceDialog(cameraId);
-            }
+            }}
         });
 
         Button2.setOnClickListener(view -> {
             if (platform != null && cameraId != null) {
+
                 fetchPriceDetails(cameraId);
             } else {
                 Toast.makeText(CameraDetailActivity.this, "Platform or camera ID not loaded", Toast.LENGTH_SHORT).show();
@@ -254,11 +261,18 @@ public class CameraDetailActivity extends AppCompatActivity {
                 }
 
                 runOnUiThread(() -> {
+                    RecyclerView recyclerView = findViewById(R.id.reviewRecyclerView);
+                    TextView noReviewsText = findViewById(R.id.no_reviews_text);
                     if (allReviews.isEmpty()) {
-                        Toast.makeText(CameraDetailActivity.this, "No reviews found.", Toast.LENGTH_LONG).show();
+                        noReviewsText.setVisibility(View.VISIBLE);
+                        recyclerView.setVisibility(View.GONE);
+                      //  Toast.makeText(CameraDetailActivity.this, "No reviews found.", Toast.LENGTH_LONG).show();
                     } else {
+                        noReviewsText.setVisibility(View.GONE);
+                        recyclerView.setVisibility(View.VISIBLE);
+
                         ReviewAdapter adapter = new ReviewAdapter(allReviews);
-                        RecyclerView recyclerView = findViewById(R.id.reviewRecyclerView);
+
                         recyclerView.setAdapter(adapter);
                         adapter.notifyDataSetChanged();  // 确保数据更新
                     }
@@ -393,22 +407,21 @@ public class CameraDetailActivity extends AppCompatActivity {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (!response.isSuccessful()) {
-                    runOnUiThread(() -> Toast.makeText(CameraDetailActivity.this, "Please login to like the items", Toast.LENGTH_LONG).show());
+                   error_flag=1;
                     return;
                 }
-
+                error_flag=0;
                 assert response.body() != null;
                 String resp = response.body().string();
                 Gson gson = new Gson();
                 Type favoriteListType = new TypeToken<List<FavoriteDTO>>(){}.getType();
-                List<FavoriteDTO> favoriteList = gson.fromJson(resp, favoriteListType);
+                favoriteList = gson.fromJson(resp, favoriteListType);
 
                 isFavorite = favoriteList.stream().anyMatch(favorite -> String.valueOf(favorite.getCameraId()).equals(cameraId));
                 runOnUiThread(() -> updateSaveButton());
             }
         });
     }
-
 
     @SuppressLint("SetTextI18n")
     private void updateSaveButton() {

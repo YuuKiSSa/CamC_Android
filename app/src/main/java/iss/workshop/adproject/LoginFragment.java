@@ -11,6 +11,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
+
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -63,7 +65,6 @@ public class LoginFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         etUsername = view.findViewById(R.id.et_username);
         etPassword = view.findViewById(R.id.et_password);
         btnLogin = view.findViewById(R.id.btn_login);
@@ -74,8 +75,20 @@ public class LoginFragment extends Fragment {
             login(username, password);
         });
 
+        // 处理返回按钮
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                FragmentManager fragmentManager = getParentFragmentManager();
+                fragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, new ProfileFragment())
+                        .addToBackStack(null) // 添加到返回栈中
+                        .commit();
+            }
+        });
         // 创建通知渠道
         createNotificationChannel();
+
     }
 
     private void login(String username, String password) {
@@ -119,7 +132,10 @@ public class LoginFragment extends Fragment {
                                     sendGetMostPreferredCamera();
                                     // 替换当前的 Fragment 为 ProfileFragment
                                     FragmentManager fragmentManager = getParentFragmentManager();
-                                    fragmentManager.beginTransaction().replace(R.id.fragment_container, new ProfileFragment()).commit();
+                                    fragmentManager.beginTransaction()
+                                            .replace(R.id.fragment_container, new ProfileFragment())
+                                            .addToBackStack(null) // 添加到返回栈中
+                                            .commit();
                                 }  else {
                                     throw new IllegalStateException("Unexpected response: " + responseBody);
                                 }
