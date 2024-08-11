@@ -2,14 +2,18 @@ package iss.workshop.adproject;
 
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -19,34 +23,48 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ProcessLifecycleOwner;
 
 
+import com.google.gson.JsonObject;
+
+import java.io.IOException;
 import java.util.List;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 
 public class MainActivity extends AppCompatActivity{
     private List<String> itemList;
+    private static final String URL_LOGIN = "http://10.0.2.2:8080/api/login";
     private DrawerLayout drawerLayout;
     private EditText minPrice, maxPrice;
     private CheckBox brandCanon, brandSony, brandNikon, tagLandscape, tagPortrait, tagSports;
     private Button applyFilterButton;
     private AppLifecycleObserver appLifecycleObserver;
     OkHttpClient client = new OkHttpClient();
+    SharedPreferences sharedPreferences;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
+        client = MyOkHttpClient.getInstance(getApplicationContext());
 
         drawerLayout = findViewById(R.id.drawer_layout);
         TextView navHome = findViewById(R.id.nav_home);
         TextView navCamera = findViewById(R.id.nav_camera);
         TextView navProfile = findViewById(R.id.nav_profile);
-
+        sharedPreferences = getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE);
+        boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
         minPrice = findViewById(R.id.min_price);
         maxPrice = findViewById(R.id.max_price);
         brandCanon = findViewById(R.id.brand_canon);
@@ -60,6 +78,11 @@ public class MainActivity extends AppCompatActivity{
             applyFilters();
             hideKeyboard();
         });
+        if (isLoggedIn) {
+            String username=sharedPreferences.getString("username", null);
+            String password=sharedPreferences.getString("password", null);
+            login(username,password);
+        }
         ProcessLifecycleOwner.get().getLifecycle().addObserver(new AppLifecycleObserver(this));
         navHome.setOnClickListener(view -> switchFragment(new HomeFragment()));
         navCamera.setOnClickListener(view -> switchFragment(new CameraFragment()));
@@ -70,7 +93,38 @@ public class MainActivity extends AppCompatActivity{
             getSupportFragmentManager().beginTransaction().replace(R.id.frame_layout, new HomeFragment()).commit();
         }
     }
+    private void login(String username, String password) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("username", username);
+        jsonObject.addProperty("password", password);
 
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonObject.toString());
+        Request request = new Request.Builder()
+                .url(URL_LOGIN)
+                .post(body)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    runOnUiThread(() -> {
+                        try {
+                            String responseBody = response.body().string();
+                            Log.d("LoginResponse", "Response Body: " + responseBody);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                }
+            }
+        });
+    }
     private void switchFragment(Fragment fragment) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         clearFragmentContainer(fragmentManager);  // 清理先前的 Fragment
@@ -84,6 +138,14 @@ public class MainActivity extends AppCompatActivity{
         for (Fragment fragment : fragmentManager.getFragments()) {
             fragmentManager.beginTransaction().remove(fragment).commit();
         }
+    }
+
+    private void launchCameraDetailFragment(String cameraId, String imageUrl) {
+        CameraDetailFragment cameraDetailFragment = CameraDetailFragment.newInstance(cameraId, imageUrl);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, cameraDetailFragment)
+                .addToBackStack(null) // 添加到返回栈中
+                .commit();
     }
 
     public void openDrawer() {

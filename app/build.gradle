@@ -41,6 +41,8 @@ dependencies {
     implementation libs.annotation
     implementation 'androidx.activity:activity:1.6.0'
     implementation libs.lifecycle.livedata.ktx
+    implementation 'com.github.bumptech.glide:glide:4.14.2'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.14.2'
     implementation libs.lifecycle.viewmodel.ktx
     apply plugin: 'com.google.gms.google-services'
     implementation 'com.google.code.gson:gson:2.8.8'

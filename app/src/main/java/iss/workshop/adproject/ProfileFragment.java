@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,17 +16,21 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.JsonObject;
+
 import java.io.IOException;
 
 import iss.workshop.adproject.R;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class ProfileFragment extends Fragment {
+
     private SharedPreferences sharedPreferences;
     OkHttpClient client = new OkHttpClient();
     public ProfileFragment() {
@@ -124,6 +129,7 @@ public class ProfileFragment extends Fragment {
         }
 
     }
+
     private void clearFragmentContainer(FragmentManager fragmentManager) {
         for (Fragment fragment : fragmentManager.getFragments()) {
             fragmentManager.beginTransaction().remove(fragment).commit();

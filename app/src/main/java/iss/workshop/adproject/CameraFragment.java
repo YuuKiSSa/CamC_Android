@@ -8,6 +8,8 @@ import androidx.annotation.Nullable;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.os.Handler;
 import android.text.Editable;
@@ -69,6 +71,7 @@ public class CameraFragment extends Fragment {
                 intent.putExtra("cameraId", cameraId);
                 intent.putExtra("imageUrl",imageUrl);
                 startActivity(intent);
+              //  launchCameraDetailFragment(cameraId,imageUrl);
             }
         });
 
@@ -132,7 +135,15 @@ public class CameraFragment extends Fragment {
         });
         return view;
     }
+    private void launchCameraDetailFragment(String cameraId, String imageUrl) {
+        CameraDetailFragment cameraDetailFragment = CameraDetailFragment.newInstance(cameraId, imageUrl);
 
+        FragmentManager fragmentManager = getParentFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.fragment_container, cameraDetailFragment);
+        fragmentTransaction.addToBackStack(null); // 将事务添加到返回栈中
+        fragmentTransaction.commit();
+    }
     private void sendGet() {
         Request request = new Request.Builder()
                 .url(URL)

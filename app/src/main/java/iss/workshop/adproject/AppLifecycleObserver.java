@@ -20,7 +20,7 @@ public class AppLifecycleObserver implements DefaultLifecycleObserver {
     public void onStart(LifecycleOwner owner) {
         // 应用程序启动
         Log.d(TAG, "App is starting");
-        logout();
+        //logout();
     }
 
     private void logout() {

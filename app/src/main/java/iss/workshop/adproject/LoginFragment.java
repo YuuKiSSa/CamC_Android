@@ -126,6 +126,7 @@ public class LoginFragment extends Fragment {
                                     SharedPreferences.Editor editor = sharedPreferences.edit();
                                     editor.putBoolean("isLoggedIn", true);
                                     editor.putString("username", username);
+                                    editor.putString("password", password);
                                     editor.apply();
 
                                     Toast.makeText(getActivity(), "Login Successful", Toast.LENGTH_SHORT).show();
