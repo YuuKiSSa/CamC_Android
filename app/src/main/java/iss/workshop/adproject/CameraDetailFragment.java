@@ -60,6 +60,8 @@ public class CameraDetailFragment extends Fragment {
     private TextView initialPriceTextView;
     private TextView effectivePixelTextView;
     private Button saveButton;
+    private Button moreInfoButton;
+
     private final List<ReviewDetailDTO> reviewList = new ArrayList<>();
 
     private TextView minPrice;
@@ -73,7 +75,7 @@ public class CameraDetailFragment extends Fragment {
 
     private String cameraId;
     private String imageUrl;
-
+    private CameraDetailDTO cameraDetail;
     public static CameraDetailFragment newInstance(String cameraId, String imageUrl) {
         CameraDetailFragment fragment = new CameraDetailFragment();
         Bundle args = new Bundle();
@@ -114,10 +116,16 @@ public class CameraDetailFragment extends Fragment {
         releaseTimeTextView = view.findViewById(R.id.releaseTime);
         initialPriceTextView = view.findViewById(R.id.initialPrice);
         effectivePixelTextView = view.findViewById(R.id.effectivePixel);
+        //isoTextView = findViewById(R.id.iso);
+//        focusPointTextView = findViewById(R.id.focusPoint);
+//        continuousShotTextView = findViewById(R.id.continuousShot);
+//        videoResolutionTextView = findViewById(R.id.videoResolution);
+//        videoRateTextView = findViewById(R.id.videoRate);
         RecyclerView reviewRecyclerView = view.findViewById(R.id.reviewRecyclerView);
         Button Button1 = view.findViewById(R.id.Button1);
         Button Button2 = view.findViewById(R.id.Button2);
         minPrice = view.findViewById(R.id.minPrice);
+        moreInfoButton=view.findViewById(R.id.moreInfoButton);
 
         // 配置 RecyclerView
         reviewRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -148,6 +156,13 @@ public class CameraDetailFragment extends Fragment {
                 } else {
                     showIdealPriceDialog(cameraId);
                 }
+            }
+        });
+
+        moreInfoButton.setOnClickListener(v -> {
+            if (cameraId != null) {
+                // 请求相机详细信息
+                showCameraDetailDialog(cameraDetail);
             }
         });
 
@@ -215,20 +230,31 @@ public class CameraDetailFragment extends Fragment {
                         .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())
                         .create();
 
-                CameraDetailDTO cameraDetail = gson.fromJson(resp, CameraDetailDTO.class);
+                cameraDetail = gson.fromJson(resp, CameraDetailDTO.class);
 
                 getActivity().runOnUiThread(() -> {
-                    // 更新 UI
-                    brandTextView.setText(cameraDetail.getBrand());
-                    modelTextView.setText(cameraDetail.getModel());
-                    categoryTextView.setText(cameraDetail.getCategory());
-                    descriptionTextView.setText(cameraDetail.getDescription());
-                    releaseTimeTextView.setText(cameraDetail.getReleaseTime().toString());
-                    initialPriceTextView.setText(String.valueOf(cameraDetail.getInitialPrice()));
-                    effectivePixelTextView.setText(String.valueOf(cameraDetail.getEffectivePixel()));
+                    View rootView = getView();
+                    if (rootView != null) {
+                        // 更新 UI
+                        brandTextView.setText(cameraDetail.getBrand());
+                        modelTextView.setText(cameraDetail.getModel());
+                        categoryTextView.setText(cameraDetail.getCategory());
+                        descriptionTextView.setText(cameraDetail.getDescription());
+                        releaseTimeTextView.setText(cameraDetail.getReleaseTime().toString());
+                        initialPriceTextView.setText(String.valueOf(cameraDetail.getInitialPrice()));
+                        effectivePixelTextView.setText(String.valueOf(cameraDetail.getEffectivePixel()));
+                    }
                 });
             }
         });
+    }
+
+    private void showCameraDetailDialog(CameraDetailDTO cameraDetail) {
+
+        if (cameraDetail != null) {
+            CameraDetailDialogFragment fragment = CameraDetailDialogFragment.newInstance(cameraDetail);
+            fragment.show(getChildFragmentManager(), "cameraDetailDialog");
+        }
     }
 
     private void loadUserReviews(String cameraId) {
@@ -270,24 +296,28 @@ public class CameraDetailFragment extends Fragment {
                 }
 
                 getActivity().runOnUiThread(() -> {
-                    RecyclerView recyclerView = getView().findViewById(R.id.reviewRecyclerView);
-                    TextView noReviewsText = getView().findViewById(R.id.no_reviews_text);
-                    if (allReviews.isEmpty()) {
-                        noReviewsText.setVisibility(View.VISIBLE);
-                        recyclerView.setVisibility(View.GONE);
-                    } else {
-                        noReviewsText.setVisibility(View.GONE);
-                        recyclerView.setVisibility(View.VISIBLE);
+                    View rootView = getView();
+                    if (rootView != null) {
+                        RecyclerView recyclerView = rootView.findViewById(R.id.reviewRecyclerView);
+                        TextView noReviewsText = rootView.findViewById(R.id.no_reviews_text);
+                        if (allReviews.isEmpty()) {
+                            noReviewsText.setVisibility(View.VISIBLE);
+                            recyclerView.setVisibility(View.GONE);
+                        } else {
+                            noReviewsText.setVisibility(View.GONE);
+                            recyclerView.setVisibility(View.VISIBLE);
 
-                        ReviewAdapter adapter = new ReviewAdapter(allReviews);
+                            ReviewAdapter adapter = new ReviewAdapter(allReviews);
 
-                        recyclerView.setAdapter(adapter);
-                        adapter.notifyDataSetChanged();  // 确保数据更新
+                            recyclerView.setAdapter(adapter);
+                            adapter.notifyDataSetChanged();  // 确保数据更新
+                        }
                     }
                 });
             }
         });
     }
+
 
     private void loadImage(String imageUrl) {
         Glide.with(this)

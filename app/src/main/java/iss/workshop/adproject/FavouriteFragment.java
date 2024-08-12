@@ -6,9 +6,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
@@ -41,7 +45,16 @@ public class FavouriteFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         favouriteListView = view.findViewById(R.id.favouriteListView);
-
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                FragmentManager fragmentManager = getParentFragmentManager();
+                fragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, new ProfileFragment())
+                        .addToBackStack(null) // 添加到返回栈中
+                        .commit();
+            }
+        });
         // Fetch favourites from the server
         fetchFavourites();
     }

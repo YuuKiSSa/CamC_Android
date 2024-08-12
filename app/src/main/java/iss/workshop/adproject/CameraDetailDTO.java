@@ -3,7 +3,15 @@ package iss.workshop.adproject;
 import java.io.Serializable;
 import java.time.LocalDate;
 
-public class CameraDetailDTO implements Serializable {
+import android.os.Parcel;
+import android.os.Parcelable;
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+public class CameraDetailDTO implements Parcelable, Serializable {
+    private static final long serialVersionUID = 1L; // Serializable 的版本号
+
     private String brand;
     private String model;
     private String category;
@@ -17,8 +25,59 @@ public class CameraDetailDTO implements Serializable {
     private int videoResolution;
     private int videoRate;
 
-    // Getters and Setters
+    // Default constructor
+    public CameraDetailDTO() {}
 
+    // Constructor for Parcelable
+    protected CameraDetailDTO(Parcel in) {
+        brand = in.readString();
+        model = in.readString();
+        category = in.readString();
+        description = in.readString();
+        releaseTime = LocalDate.parse(in.readString(), DateTimeFormatter.ISO_LOCAL_DATE);
+        initialPrice = in.readDouble();
+        effectivePixel = in.readDouble();
+        ISO = in.readInt();
+        focusPoint = (Integer) in.readSerializable();
+        continuousShot = in.readInt();
+        videoResolution = in.readInt();
+        videoRate = in.readInt();
+    }
+
+    public static final Creator<CameraDetailDTO> CREATOR = new Creator<CameraDetailDTO>() {
+        @Override
+        public CameraDetailDTO createFromParcel(Parcel in) {
+            return new CameraDetailDTO(in);
+        }
+
+        @Override
+        public CameraDetailDTO[] newArray(int size) {
+            return new CameraDetailDTO[size];
+        }
+    };
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(brand);
+        dest.writeString(model);
+        dest.writeString(category);
+        dest.writeString(description);
+        dest.writeString(releaseTime.format(DateTimeFormatter.ISO_LOCAL_DATE));
+        dest.writeDouble(initialPrice);
+        dest.writeDouble(effectivePixel);
+        dest.writeInt(ISO);
+        dest.writeSerializable(focusPoint);
+        dest.writeInt(continuousShot);
+        dest.writeInt(videoResolution);
+        dest.writeInt(videoRate);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    // Getters and Setters (unchanged)
     public String getBrand() {
         return brand;
     }

@@ -88,9 +88,37 @@ public class MainActivity extends AppCompatActivity{
         navCamera.setOnClickListener(view -> switchFragment(new CameraFragment()));
         navProfile.setOnClickListener(view -> switchFragment(new ProfileFragment()));
 
+        if (getIntent() != null && "SHOW_CAMERA_DETAIL".equals(getIntent().getAction())) {
+            String cameraId = getIntent().getStringExtra("cameraId");
+            String imageUrl = getIntent().getStringExtra("imageUrl");
+
+            if (cameraId != null && imageUrl != null) {
+                showCameraDetailFragment(cameraId, imageUrl);
+            }
+        }
+
         // Default fragment
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction().replace(R.id.frame_layout, new HomeFragment()).commit();
+        }
+
+        handleIntent(getIntent());
+    }
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent intent) {
+        if (intent != null && "SHOW_CAMERA_DETAIL".equals(intent.getAction())) {
+            String cameraId = intent.getStringExtra("cameraId");
+            String imageUrl = intent.getStringExtra("imageUrl");
+
+            if (cameraId != null && imageUrl != null) {
+                showCameraDetailFragment(cameraId, imageUrl);
+            }
         }
     }
     private void login(String username, String password) {
@@ -125,6 +153,23 @@ public class MainActivity extends AppCompatActivity{
             }
         });
     }
+
+    private void showCameraDetailFragment(String cameraId, String imageUrl) {
+        CameraDetailFragment fragment = CameraDetailFragment.newInstance(cameraId, imageUrl);
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+        // 清除frame_layout中的所有Fragment
+        Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
+        if (currentFragment != null) {
+            transaction.remove(currentFragment);
+        }
+
+        // 添加新的CameraDetailFragment
+        transaction.replace(R.id.frame_layout, fragment)
+                .addToBackStack(null) // 添加到返回栈中
+                .commit();
+    }
+
     private void switchFragment(Fragment fragment) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         clearFragmentContainer(fragmentManager);  // 清理先前的 Fragment

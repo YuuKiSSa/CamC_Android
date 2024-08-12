@@ -218,9 +218,10 @@ public class LoginFragment extends Fragment {
             Bitmap bitmap = getBitmapFromURL(camera.getImageUrl());
 
             // 创建点击通知时的Intent
-            Intent intent = new Intent(getActivity(), CameraDetailActivity.class);
+            Intent intent = new Intent(getActivity(), MainActivity.class);
             intent.putExtra("cameraId", String.valueOf(camera.getId()));
             intent.putExtra("imageUrl", camera.getImageUrl());
+            intent.setAction("SHOW_CAMERA_DETAIL");
             PendingIntent pendingIntent = PendingIntent.getActivity(getActivity(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             // 创建通知
@@ -240,6 +241,7 @@ public class LoginFragment extends Fragment {
             Log.d("Notification", "Notification sent.");
         }).start();
     }
+
 
     private Bitmap getBitmapFromURL(String src) {
         try {

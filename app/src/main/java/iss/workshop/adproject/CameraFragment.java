@@ -66,12 +66,12 @@ public class CameraFragment extends Fragment {
                 CameraListDTO selectedCamera = (CameraListDTO) parent.getItemAtPosition(position);
                 String cameraId = String.valueOf(selectedCamera.getId());
                 String imageUrl= selectedCamera.getImageUrl();
-                // 启动 CameraDetailActivity
-                Intent intent = new Intent(getActivity(), CameraDetailActivity.class);
-                intent.putExtra("cameraId", cameraId);
-                intent.putExtra("imageUrl",imageUrl);
-                startActivity(intent);
-              //  launchCameraDetailFragment(cameraId,imageUrl);
+//                // 启动 CameraDetailActivity
+//                Intent intent = new Intent(getActivity(), CameraDetailActivity.class);
+//                intent.putExtra("cameraId", cameraId);
+//                intent.putExtra("imageUrl",imageUrl);
+//                startActivity(intent);
+                  launchCameraDetailFragment(cameraId,imageUrl);
             }
         });
 
@@ -135,15 +135,22 @@ public class CameraFragment extends Fragment {
         });
         return view;
     }
+
     private void launchCameraDetailFragment(String cameraId, String imageUrl) {
+        Log.d(TAG, "Launching CameraDetailFragment with cameraId: " + cameraId + " and imageUrl: " + imageUrl);
+
         CameraDetailFragment cameraDetailFragment = CameraDetailFragment.newInstance(cameraId, imageUrl);
 
         FragmentManager fragmentManager = getParentFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.fragment_container, cameraDetailFragment);
+        fragmentTransaction.replace(R.id.frame_layout, cameraDetailFragment);
         fragmentTransaction.addToBackStack(null); // 将事务添加到返回栈中
         fragmentTransaction.commit();
+
+
+        Log.d(TAG, "Fragment transaction committed.");
     }
+
     private void sendGet() {
         Request request = new Request.Builder()
                 .url(URL)

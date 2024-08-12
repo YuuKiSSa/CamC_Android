@@ -44,9 +44,10 @@ public class LikeAdapter extends RecyclerView.Adapter<LikeAdapter.ViewHolder> {
         holder.priceView.setText(String.format("￥%.2f", camera.getInitialPrice()));
 
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, CameraDetailActivity.class);
+            Intent intent = new Intent(context, MainActivity.class);
             intent.putExtra("cameraId", String.valueOf(camera.getId()));
             intent.putExtra("imageUrl", camera.getImageUrl());
+            intent.setAction("SHOW_CAMERA_DETAIL");
             context.startActivity(intent);
         });
     }

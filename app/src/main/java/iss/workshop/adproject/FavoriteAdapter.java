@@ -90,9 +90,10 @@ public class FavoriteAdapter extends ArrayAdapter<CameraFavouriteDTO> {
             return; // 如果通知已经发送，则不再发送
         }
 
-        Intent intent = new Intent(context, CameraDetailActivity.class);
+        Intent intent = new Intent(context, MainActivity.class);
         intent.putExtra("cameraId", String.valueOf(favorite.getId()));
         intent.putExtra("imageUrl", favorite.getImageUrl());
+        intent.setAction("SHOW_CAMERA_DETAIL");
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
