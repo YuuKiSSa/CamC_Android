@@ -20,6 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -133,8 +134,7 @@ public class CameraDetailFragment extends Fragment {
         reviewRecyclerView.setAdapter(reviewAdapter);
 
         Button1.setOnClickListener(v -> {
-            Intent intent1 = new Intent(getActivity(), ChartActivity.class);
-            startActivity(intent1);
+            showHistoryPrice(Long.parseLong(cameraId));
         });
 
         if (cameraId != null) {
@@ -255,6 +255,13 @@ public class CameraDetailFragment extends Fragment {
             CameraDetailDialogFragment fragment = CameraDetailDialogFragment.newInstance(cameraDetail);
             fragment.show(getChildFragmentManager(), "cameraDetailDialog");
         }
+    }
+    private void showHistoryPrice(Long cameraId) {
+        ChartFragment fragment = ChartFragment.newInstance(cameraId);
+        FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_container, fragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
 
     private void loadUserReviews(String cameraId) {
