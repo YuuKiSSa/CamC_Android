@@ -20,6 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -46,11 +47,11 @@ import okhttp3.Response;
 
 public class CameraDetailFragment extends Fragment {
 
-    private static final String CAMERA_DETAIL_URL = "http://10.0.2.2:8080/api/details/";
-    private static final String USER_REVIEWS_URL = "http://10.0.2.2:8080/api/review/";
-    private static final String MIN_PRICE_URL = "http://10.0.2.2:8080/api/minPrice/";
-    private static final String ADD_FAVORITE_URL = "http://10.0.2.2:8080/api/favorite/add";
-    private static final String DELETE_FAVORITE_URL = "http://10.0.2.2:8080/api/favorite/delete";
+    private static final String CAMERA_DETAIL_URL = "http://13.213.1.218/api/details/";
+    private static final String USER_REVIEWS_URL = "http://13.213.1.218/api/review/";
+    private static final String MIN_PRICE_URL = "http://13.213.1.218/api/minPrice/";
+    private static final String ADD_FAVORITE_URL = "http://13.213.1.218/api/favorite/add";
+    private static final String DELETE_FAVORITE_URL = "http://13.213.1.218/api/favorite/delete";
 
     private ImageView cameraImageView;
     private TextView brandTextView;
@@ -134,6 +135,7 @@ public class CameraDetailFragment extends Fragment {
         reviewRecyclerView.setAdapter(reviewAdapter);
 
         Button1.setOnClickListener(v -> {
+            Log.d("FragmentTransaction", "Button clicked, attempting to show history price.");
             showHistoryPrice(Long.parseLong(cameraId));
         });
 
@@ -176,7 +178,7 @@ public class CameraDetailFragment extends Fragment {
     }
 
     private void fetchPriceDetails(String cameraId) {
-        String url = "http://10.0.2.2:8080/api/price/" + cameraId;
+        String url = "http://13.213.1.218/api/price/" + cameraId;
 
         OkHttpClient client = new OkHttpClient();
 
@@ -258,10 +260,11 @@ public class CameraDetailFragment extends Fragment {
     }
     private void showHistoryPrice(Long cameraId) {
         ChartFragment fragment = ChartFragment.newInstance(cameraId);
-        FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
-        transaction.replace(R.id.fragment_container, fragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
+        FragmentManager fragmentManager = getParentFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.frame_layout, fragment);
+        fragmentTransaction.addToBackStack(null); // 将事务添加到返回栈中
+        fragmentTransaction.commit();
     }
 
     private void loadUserReviews(String cameraId) {
@@ -407,12 +410,12 @@ public class CameraDetailFragment extends Fragment {
         if (packageName != null && isAppInstalled(packageName)) {
             Intent intent = getActivity().getPackageManager().getLaunchIntentForPackage(packageName);
             if (intent != null) {
-                intent.setData(Uri.parse(productLink));
+                intent.putExtra(Intent.EXTRA_TEXT, productLink);
+                intent.setType("text/plain");
                 Log.d("ProductLink", productLink);
                 try {
                     startActivity(intent);
                 } catch (ActivityNotFoundException e) {
-                    // 如果应用未找到，使用浏览器打开
                     openInBrowser(productLink);
                 }
             }
@@ -422,8 +425,12 @@ public class CameraDetailFragment extends Fragment {
     }
 
     private void openInBrowser(String url) {
-        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-        startActivity(browserIntent);
+        try {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity(browserIntent);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(getContext(), "No application can handle this request. Please install a web browser.", Toast.LENGTH_LONG).show();
+        }
     }
 
     private boolean isAppInstalled(String packageName) {
@@ -436,9 +443,10 @@ public class CameraDetailFragment extends Fragment {
         }
     }
 
+
     private void checkFavoriteStatus(String cameraId) {
         // 构建URL
-        String url = "http://10.0.2.2:8080/api/favorite";
+        String url = "http://13.213.1.218/api/favorite";
 
         Request request = new Request.Builder()
                 .url(url)

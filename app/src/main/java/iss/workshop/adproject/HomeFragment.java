@@ -32,8 +32,8 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class HomeFragment extends Fragment {
-    private static final String URL = "http://10.0.2.2:8080/api/you-may-like";
-    private static final String URL1 = "http://10.0.2.2:8080/api/list-tag";
+    private static final String URL = "http://13.213.1.218/api/you-may-like";
+    private static final String URL1 = "http://13.213.1.218/api/list-tag";
     private static final String TAG = "HomeFragment";
     private RecyclerView recyclerView;
     private RecyclerView precyclerView;

@@ -43,8 +43,8 @@ public class CameraFragment extends Fragment {
     CameraListAdapter adapter;
     private ImageView filterIcon;
     private DrawerLayout drawerLayout;
-    private static final String MIN_PRICE_URL = "http://10.0.2.2:8080/api/minPrice/";
-    private static final String URL = "http://10.0.2.2:8080/api/list-tag";
+    private static final String MIN_PRICE_URL = "http://13.213.1.218/api/minPrice/";
+    private static final String URL = "http://13.213.1.218/api/list-tag";
     private OkHttpClient client = new OkHttpClient();
     private ListView listView;
     private Button searchButton;

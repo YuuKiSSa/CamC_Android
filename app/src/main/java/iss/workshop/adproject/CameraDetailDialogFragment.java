@@ -62,7 +62,7 @@ public class CameraDetailDialogFragment extends DialogFragment {
             releaseTimeTextView.setText(cameraDetail.getReleaseTime() != null ? cameraDetail.getReleaseTime().toString() : "N/A");
             initialPriceTextView.setText(String.valueOf(cameraDetail.getInitialPrice()));
             effectivePixelTextView.setText(String.valueOf(cameraDetail.getEffectivePixel()));
-            isoTextView.setText(String.valueOf(cameraDetail.getISO()));
+            isoTextView.setText(String.valueOf(cameraDetail.getIso()));
             focusPointTextView.setText(cameraDetail.getFocusPoint() != null ? cameraDetail.getFocusPoint().toString() : "N/A");
             continuousShotTextView.setText(String.valueOf(cameraDetail.getContinuousShot()));
             videoResolutionTextView.setText(String.valueOf(cameraDetail.getVideoResolution()));

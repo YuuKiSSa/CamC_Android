@@ -19,7 +19,7 @@ public class CameraDetailDTO implements Parcelable, Serializable {
     private LocalDate releaseTime;
     private double initialPrice;
     private double effectivePixel;
-    private int ISO;
+    private int iso;
     private Integer focusPoint;
     private int continuousShot;
     private int videoResolution;
@@ -37,7 +37,7 @@ public class CameraDetailDTO implements Parcelable, Serializable {
         releaseTime = LocalDate.parse(in.readString(), DateTimeFormatter.ISO_LOCAL_DATE);
         initialPrice = in.readDouble();
         effectivePixel = in.readDouble();
-        ISO = in.readInt();
+        iso = in.readInt();
         focusPoint = (Integer) in.readSerializable();
         continuousShot = in.readInt();
         videoResolution = in.readInt();
@@ -65,7 +65,7 @@ public class CameraDetailDTO implements Parcelable, Serializable {
         dest.writeString(releaseTime.format(DateTimeFormatter.ISO_LOCAL_DATE));
         dest.writeDouble(initialPrice);
         dest.writeDouble(effectivePixel);
-        dest.writeInt(ISO);
+        dest.writeInt(iso);
         dest.writeSerializable(focusPoint);
         dest.writeInt(continuousShot);
         dest.writeInt(videoResolution);
@@ -134,12 +134,12 @@ public class CameraDetailDTO implements Parcelable, Serializable {
         this.effectivePixel = effectivePixel;
     }
 
-    public int getISO() {
-        return ISO;
+    public int getIso() {
+        return iso;
     }
 
-    public void setISO(int ISO) {
-        this.ISO = ISO;
+    public void setIso(int iso) {
+        this.iso = iso;
     }
 
     public Integer getFocusPoint() {

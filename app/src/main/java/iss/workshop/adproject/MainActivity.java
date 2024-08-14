@@ -43,7 +43,7 @@ import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity{
     private List<String> itemList;
-    private static final String URL_LOGIN = "http://10.0.2.2:8080/api/login";
+    private static final String URL_LOGIN = "http://13.213.1.218/api/login";
     private DrawerLayout drawerLayout;
     private EditText minPrice, maxPrice;
     private CheckBox brandCanon, brandSony, brandNikon, tagLandscape, tagPortrait, tagSports;

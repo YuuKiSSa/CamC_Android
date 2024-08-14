@@ -62,7 +62,7 @@ public class FavouriteFragment extends Fragment {
     private void fetchFavourites() {
 
         Request request = new Request.Builder()
-                .url("http://10.0.2.2:8080/api/favorites-details")
+                .url("http://13.213.1.218/api/favorites-details")
                 .get()
                 .build();
 

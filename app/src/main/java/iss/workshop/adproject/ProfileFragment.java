@@ -75,7 +75,7 @@ public class ProfileFragment extends Fragment {
 
                 // 创建请求
                 Request request = new Request.Builder()
-                        .url("http://10.0.2.2:8080/api/logout")
+                        .url("http://13.213.1.218/api/logout")
                         .post(RequestBody.create(null, new byte[0])) // 空的 POST 请求体
                         .build();
 

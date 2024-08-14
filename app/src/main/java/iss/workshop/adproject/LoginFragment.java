@@ -47,9 +47,9 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class LoginFragment extends Fragment {
-    private static final String URL_LOGIN = "http://10.0.2.2:8080/api/login";
+    private static final String URL_LOGIN = "http://13.213.1.218/api/login";
     private static final String CHANNEL_ID = "camera_notification_channel";
-    private static final String URL = "http://10.0.2.2:8080/api/cameras/most-preferred";
+    private static final String URL = "http://13.213.1.218/api/cameras/most-preferred";
     private EditText etUsername;
     private EditText etPassword;
     private Button btnLogin;

@@ -31,6 +31,14 @@ android {
     }
 }
 
+android.applicationVariants.all {
+    variant ->
+        variant.outputs.all {
+            // 此处指定生成的apk文件名
+            outputFileName = "test.apk"
+        }
+}
+
 dependencies {
     // Retrofit for network requests
     implementation platform('com.google.firebase:firebase-bom:33.1.2')

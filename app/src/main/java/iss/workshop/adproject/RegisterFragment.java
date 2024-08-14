@@ -33,7 +33,7 @@ import okhttp3.Response;
 
 public class RegisterFragment extends Fragment {
 
-    private static final String REGISTER_URL = "http://10.0.2.2:8080/api/register";
+    private static final String REGISTER_URL = "http://13.213.1.218/api/register";
     public RegisterFragment() {
         // Required empty public constructor
     }
